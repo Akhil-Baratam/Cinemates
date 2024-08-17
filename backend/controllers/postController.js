@@ -277,4 +277,4 @@ const getUserPosts = async (req, res) => {
 	}
 };
 
-module.exports = { createPost, deletePost, commentOnPost, likeUnlikePost, getAllPosts, getLikedPosts, getFollowingPosts, getUserPosts  };
+module.exports = { createPost, deletePost, commentOnPost, likeUnlikePost, getAllPosts, getLikedPosts, getFollowingPosts, getUserPosts  }; 

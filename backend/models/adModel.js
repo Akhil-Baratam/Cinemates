@@ -7,8 +7,9 @@ const adSchema = new mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
-		text: {
+		description: {
 			type: String,
+			required: true,
 		},
         price: {
             type: Number,
@@ -17,10 +18,17 @@ const adSchema = new mongoose.Schema(
         bought_on: {
             type: Date,
             default: Date.now,
+            required: true,
         },
-		img: {
-			type: String,
-		},
+		imgs: [
+			{
+				type: String,
+			}
+		],
+        address: {
+            type: String,
+            required: true,
+        },
 		interests: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
@@ -44,6 +52,6 @@ const adSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-const Post = mongoose.model("ad", adSchema);
+const Ad = mongoose.model("Ad", adSchema);
 
-module.exports = Post;
+module.exports = Ad;

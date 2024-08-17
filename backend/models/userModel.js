@@ -59,6 +59,13 @@ const userSchema = new mongoose.Schema(
             default: [],
         },
     ],
+    interestedAds: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Ad",
+            default: [],
+        },
+    ],
 },
  {timestamps: true});
 

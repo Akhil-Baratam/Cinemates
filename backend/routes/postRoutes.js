@@ -13,6 +13,6 @@ router.get("/all", protectRoute, getAllPosts);
 router.get("/likes/:id", protectRoute, getLikedPosts);
 router.get("/following", protectRoute, getFollowingPosts);
 router.get("/user/:username", protectRoute, getUserPosts);
+ 
 
-
-module.exports = router;
+module.exports = router; 

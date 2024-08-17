@@ -10,3 +10,4 @@ router.get("/suggested", protectRoute , getSuggestedUsers);
 router.post("/update", protectRoute , updateUser);
 
 module.exports = router;
+ 

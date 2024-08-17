@@ -9,4 +9,4 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.get("/me", protectRoute, getMe);
 
-module.exports = router;
+module.exports = router; 
