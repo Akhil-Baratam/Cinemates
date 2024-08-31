@@ -1,45 +1,113 @@
-import { useState } from "react";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import logo from ".././../assets/logoBlack.png";
 
-import Posts from "../../components/common/Posts";
-import CreatePost from "./CreatePost";
+function HomePage() {
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-const HomePage = () => {
-	const [feedType, setFeedType] = useState("forYou");
+  return (
+    <div>
+      {/* Navbar for users who are not logged in */}
+      <div className="border-b mx-auto px-2">
+        <div className="flex items-center justify-between px-4 py-2">
+          <Link to="/" className="flex justify-start">
+            <img src={logo} alt="Logo" className="w-40 h-auto" />
+          </Link>
+          <ul className="flex justify-stretch gap-8 font-normal">
+            <li className={currentPath === '/' ? ' text-md underline underline-offset-2' : ''}>
+              <Link to="/">Home</Link>
+            </li>
+            <li className={currentPath === '/features' ? 'text-md underline underline-offset-2' : ''}>
+              <Link to="/">Features</Link>
+            </li>
+            <li className={currentPath === '/about' ? 'text-md underline underline-offset-2' : ''}>
+              <Link to="/">About</Link>
+            </li>
+            <li className={currentPath === '/contact' ? 'text-md underline underline-offset-2' : ''}>
+              <Link to="/">Contact</Link>
+            </li>
+          </ul>
 
-	return (
-		<>
-			<div className='flex-[4_4_0] mr-auto border-r border-gray-700 min-h-screen'>
-				{/* Header */}
-				<div className='flex w-full border-b border-gray-700'>
-					<div
-						className={
-							"flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 cursor-pointer relative"
-						}
-						onClick={() => setFeedType("forYou")}
-					>
-						For you
-						{feedType === "forYou" && (
-							<div className='absolute bottom-0 w-10  h-1 rounded-full bg-primary'></div>
-						)}
-					</div>
-					<div
-						className='flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 cursor-pointer relative'
-						onClick={() => setFeedType("following")}
-					>
-						Following
-						{feedType === "following" && (
-							<div className='absolute bottom-0 w-10  h-1 rounded-full bg-primary'></div>
-						)}
-					</div>
-				</div>
+        <div className="flex items-center">
+          <Link
+          to='/login'
+            className={`px-4 py-2 rounded-md text-black`}
+          >
+            Login
+          </Link>
+          <Link
+            to="/signup"
+            className={`px-4 py-2 rounded-md text-white hover:bg-gray-800 bg-gray-900 ml-2`}
+          >
+            Signup
+          </Link>
+        </div>
+        </div>
+      </div>
 
-				{/*  CREATE POST INPUT */}
-				<CreatePost />
+      {/* Rest of the HomePage content */}
+      <section className="bg-[#FCF8F1] bg-opacity-30 py-10 sm:py-16 lg:py-24">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
+            <div>
+              <p className="text-base font-semibold tracking-wider text-blue-600 uppercase">
+                A social media for learners
+              </p>
+              <h1 className="mt-4 text-4xl font-bold text-black lg:mt-8 sm:text-6xl xl:text-8xl">
+                Connect & learn from the experts
+              </h1>
+              <p className="mt-4 text-base text-black lg:mt-8 sm:text-xl">
+                Grow your career fast with right mentor.
+              </p>
 
-				{/* POSTS */}
-				<Posts feedType={feedType} />
-			</div>
-		</>
-	);
-};
+              <a
+                href="#"
+                title=""
+                className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-yellow-300 rounded-full lg:mt-16 hover:bg-yellow-400 focus:bg-yellow-400"
+                role="button"
+              >
+                Join for free
+                <svg
+                  className="w-6 h-6 ml-8 -mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </a>
+
+              <p className="mt-5 text-gray-600">
+                Already joined us?{" "}
+                <a
+                  href="#"
+                  title=""
+                  className="text-black transition-all duration-200 hover:underline"
+                >
+                  Log in
+                </a>
+              </p>
+            </div>
+
+            <div>
+              <img
+                className="w-full"
+                src="https://cdn.rareblocks.xyz/collection/celebration/images/hero/1/hero-img.png"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default HomePage;

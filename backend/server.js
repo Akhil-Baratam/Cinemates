@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
+const cors = require('cors');
 const connectMongoDB = require("./db/connectMongoDB");
 const cookieParser = require('cookie-parser')
 var cloudinary = require('cloudinary').v2;
@@ -14,6 +15,11 @@ cloudinary.config({
 })
 
 const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+}));  // Enable CORS for all routes
 
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan('dev'));
