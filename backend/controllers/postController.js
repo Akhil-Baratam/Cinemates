@@ -124,13 +124,6 @@ const likeUnlikePost = async (req, res) => {
       await User.updateOne({ _id: userId }, { $push: { likedPosts: postId } });
       await post.save();
 
-      const notification = new Notification({
-        from: userId,
-        to: post.user,
-        type: "like",
-      });
-      await notification.save();
-
       const updatedLikes = post.likes;
       res.status(200).json(updatedLikes);
     }

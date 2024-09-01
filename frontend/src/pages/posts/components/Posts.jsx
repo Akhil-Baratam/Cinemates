@@ -2,6 +2,7 @@ import Post from "./Post";
 import PostSkeleton from "../../../assets/skeletons/PostSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Posts = ({ feedType }) => {
 
@@ -34,30 +35,61 @@ const Posts = ({ feedType }) => {
       }
     },
   });
-
+ 
   useEffect(() => {
     refetch();
   }, []);
 
   return (
-    <div className="space-y-6 bg-white">
-      {(isLoading || isRefetching) && (
-        <div className="flex flex-col space-y-4">
-          <PostSkeleton />
-          <PostSkeleton />
-        </div>
-      )}
-      {!isLoading && !isRefetching && posts?.length === 0 && (
-        <p className="text-center text-gray-500">No posts available. Start the conversation!</p>
-      )}
-      {!isLoading && !isRefetching && posts && (
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <Post key={post._id} post={post} />
-          ))}
-        </div>
-      )}
-    </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+    >
+      <AnimatePresence>
+        {(isLoading || isRefetching) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col space-y-4 p-4"
+          >
+            <PostSkeleton />
+            <PostSkeleton />
+          </motion.div>
+        )}
+        {!isLoading && !isRefetching && posts?.length === 0 && (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center text-gray-500 dark:text-gray-400 p-8"
+          >
+            No posts available. Start the conversation!
+          </motion.p>
+        )}
+        {!isLoading && !isRefetching && posts && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ staggerChildren: 0.1 }}
+            className="space-y-4"
+          >
+            {posts.map((post) => (
+              <motion.div
+                key={post._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Post post={post} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

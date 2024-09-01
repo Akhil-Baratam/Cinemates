@@ -5,15 +5,60 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import LoadingSpinner from "../../../components/LoadinSpinner";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../../components/ui/avatar";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
+  const postOwner = post.user;
+  const [isLiked, setIsLiked] = useState(post.likes.includes(authUser._id));
+  const [localLikes, setLocalLikes] = useState(post.likes);
+  const isMyPost = authUser._id === post.user._id;
+  const formattedDate = "1h"; // For demonstration, format the date as required
 
-  const { mutate: deletePost, isPending } = useMutation({
+  const { mutate: likePost, isPending: isLiking } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/like/${post._id}`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    onSuccess: (updatedLikes) => {
+      // queryClient.invalidateQueries({ queryKey: ["posts"] }); //This will refetch all posts which is bad for UX
+      //instead update the cache directly for that post
+      setLocalLikes(updatedLikes); // Update local state
+      setIsLiked(updatedLikes.includes(authUser._id)); // Update isLiked state
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData?.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, likes: updatedLikes };
+          }
+          return p;
+        });
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const { mutate: deletePost, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
       try {
         const res = await fetch(`/api/posts/${post._id}`, {
@@ -32,133 +77,203 @@ const Post = ({ post }) => {
     },
   });
 
-  const postOwner = post.user;
-  const isLiked = false;
-  const isMyPost = authUser._id === post.user._id;
-  const formattedDate = "1h"; // For demonstration, format the date as required
-
   const handleDeletePost = () => {
     deletePost();
   };
 
   const handlePostComment = (e) => {
     e.preventDefault();
-    // Implement comment posting functionality
   };
 
   const handleLikePost = () => {
-    // Implement like functionality
+    if (isLiking) return;
+    setIsLiked(!isLiked); // Optimistically update isLiked state
+    setLocalLikes((prevLikes) =>
+      isLiked ? prevLikes.filter((id) => id !== authUser._id) : [...prevLikes, authUser._id]
+    ); // Optimistically update localLikes state
+    likePost();
   };
 
   const goToPreviousImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex === 0 ? post.imgs.length - 1 : prevIndex - 1));
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? post.imgs.length - 1 : prevIndex - 1
+    );
   };
 
   const goToNextImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex === post.imgs.length - 1 ? 0 : prevIndex + 1));
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === post.imgs.length - 1 ? 0 : prevIndex + 1
+    );
   };
 
   return (
-    <div className='flex gap-2 items-start p-4 border-b border-gray-700'>
-      <div className='avatar w-8 h-8'>
-        <Link to={`/profile/${postOwner.username}`}>
-          <img
-            className='aspect-square object-cover rounded-full'
-            src={postOwner.profileImg || postOwner.fullName.charAt(0).toUpperCase()}
-            alt={postOwner.fullName}
-          />
-        </Link>
-      </div>
-      <div className='flex flex-col flex-1'>
-        <div className='flex gap-2 items-center'>
-          <Link to={`/profile/${postOwner.username}`} className='font-bold'>
-            {postOwner.fullName}
-          </Link>
-          <span className='text-gray-700 flex gap-1 text-sm'>
-            <Link to={`/profile/${postOwner.username}`}>@{postOwner.username}</Link>
-            <span>·</span>
-            <span>{formattedDate}</span>
-          </span>
-          {isMyPost && (
-            <span className='flex justify-end flex-1'>
-              {!isPending && (
-                <FaTrash
-                  className='cursor-pointer hover:text-red-500'
-                  onClick={handleDeletePost}
-                />
-              )}
-              {isPending && <LoadingSpinner />}
-            </span>
-          )}
-        </div>
-        <div className='flex flex-col gap-3 overflow-hidden'>
-          <span>{post.text}</span>
-          {post.imgs && post.imgs.length > 0 && (
-            <div className='relative w-full h-80'>
-              <img
-                src={post.imgs[currentImageIndex]}
-                className='w-full h-full object-contain rounded-lg border border-gray-700'
-                alt=''
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="bg-background rounded-lg shadow-md overflow-hidden"
+    >
+      <div className="p-4 border-border">
+        <div className="flex items-center space-x-3">
+          <Link to={`/profile/${postOwner.username}`} className="flex-shrink-0">
+            <Avatar>
+              <AvatarImage
+                src={postOwner.profileImg}
+                alt={postOwner.fullName}
               />
-              {post.imgs.length > 1 && (
-                <>
-                  <button
-                    className='absolute top-1/2 left-0 transform -translate-y-1/2 bg-black bg-opacity-50 text-white px-2 py-1 rounded'
-                    onClick={goToPreviousImage}
-                  >
-                    &#10094;
-                  </button>
-                  <button
-                    className='absolute top-1/2 right-0 transform -translate-y-1/2 bg-black bg-opacity-50 text-white px-2 py-1 rounded'
-                    onClick={goToNextImage}
-                  >
-                    &#10095;
-                  </button>
-                </>
+              <AvatarFallback>
+                {postOwner.fullName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+          <div className="flex-grow min-w-0">
+            <Link
+              to={`/profile/${postOwner.username}`}
+              className="font-bold text-foreground hover:underline"
+            >
+              {postOwner.fullName}
+            </Link>
+            <p className=" text-xs text-muted-foreground truncate">
+              <Link
+                to={`/profile/${postOwner.username}`}
+                className="hover:underline"
+              >
+                @{postOwner.username}
+              </Link>
+              <span className="mx-1">·</span>
+              <span>{formattedDate}</span>
+            </p>
+          </div>
+          {isMyPost && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="text-muted-foreground hover:text-destructive transition duration-200"
+              onClick={handleDeletePost}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                <FaTrash className="w-5 h-5" />
               )}
-            </div>
+            </motion.button>
           )}
         </div>
-        <div className='flex justify-between mt-3'>
-          <div className='flex gap-4 items-center w-2/3 justify-between'>
-            <div
-              className='flex gap-1 items-center cursor-pointer'
-              onClick={handleLikePost}
-            >
-              <FaRegHeart className={`w-5 h-5 ${isLiked ? 'text-red-500' : 'text-gray-500'}`} />
-              <span className={`${isLiked ? 'text-red-500' : 'text-gray-500'}`}>Like</span>
-            </div>
-            <div className='flex gap-1 items-center cursor-pointer'>
-              <FaRegComment className='w-5 h-5 text-gray-500' />
-              <span>Comment</span>
-            </div>
-            <div className='flex gap-1 items-center cursor-pointer'>
-              <BiRepost className='w-5 h-5 text-gray-500' />
-              <span>Repost</span>
-            </div>
-            <div className='flex gap-1 items-center cursor-pointer'>
-              <FaRegBookmark className='w-5 h-5 text-gray-500' />
-              <span>Save</span>
-            </div>
-          </div>
-        </div>
-        <div className='flex flex-col gap-2 mt-4'>
-          <form onSubmit={handlePostComment} className='flex gap-2 items-center'>
-            <input
-              type='text'
-              className='input input-sm w-full border-gray-700 rounded-full'
-              placeholder='Add a comment...'
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <button type='submit' className='btn btn-sm btn-primary rounded-full'>
-              Comment
-            </button>
-          </form>
-          {/* Render comments here */}
-        </div>
       </div>
-    </div>
+      <div className="px-5 pb-4">
+        <p className="text-foreground text-sm mb-4">{post.text}</p>
+        {post.imgs && post.imgs.length > 0 && (
+          <div className="relative w-full h-80 mb-4">
+            <img
+              src={post.imgs[currentImageIndex]}
+              className="w-full h-full object-contain rounded-lg"
+              alt=""
+            />
+            {post.imgs.length > 1 && (
+              <>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-1/2 left-2 transform -translate-y-1/2"
+                  onClick={goToPreviousImage}
+                >
+                  &#10094;
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-1/2 right-2 transform -translate-y-1/2"
+                  onClick={goToNextImage}
+                >
+                  &#10095;
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+        <div className="flex justify-between text-xs items-center mb-4">
+          <div
+            className={`flex items-center space-x-1 cursor-pointer`}
+            onClick={handleLikePost}
+          >
+            {isLiking ? (
+              <LoadingSpinner size="sm" className=" border-pink-500" />
+            ) : isLiked ? (
+              <FaRegHeart className="w-4 h-4 text-pink-500" />
+            ) : (
+              <FaRegHeart className="w-4 h-4 text-slate-500 hover:text-pink-500" />
+            )}
+            <span
+              className={`text-sm hover:text-pink-500 ${
+                isLiked ? "text-pink-500" : "text-slate-500"
+              }`}
+            >
+              {localLikes.length}
+            </span>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.0 }}
+            whileTap={{ scale: 0.9 }}
+            className="flex items-center space-x-1 text-muted-foreground"
+          >
+            <FaRegComment className="w-4 h-4" />
+            <span>Comment</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.0 }}
+            whileTap={{ scale: 0.9 }}
+            className="flex items-center space-x-1 text-muted-foreground"
+          >
+            <BiRepost className="w-4 h-4" />
+            <span>Repost</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.0 }}
+            whileTap={{ scale: 0.9 }}
+            className="flex items-center space-x-1 text-muted-foreground"
+          >
+            <FaRegBookmark className="w-4 h-4" />
+            <span>Save</span>
+          </motion.button>
+        </div>
+        <form
+          onSubmit={handlePostComment}
+          className="flex items-center space-x-2"
+        >
+          <Input
+            type="text"
+            placeholder="Add a comment..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="flex-grow"
+          />
+          <Button type="submit" variant="secondary">
+            Comment
+          </Button>
+        </form>
+      </div>
+    </motion.div>
   );
 };
 

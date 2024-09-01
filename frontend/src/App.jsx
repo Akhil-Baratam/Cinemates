@@ -7,7 +7,7 @@ import ProfilePage from "./pages/profile/ProfilePage";
 import CommunityPosts from "./pages/posts/CommunityPosts";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
-import LoadingSpinner from "./components/LoadinSpinner";
+import LoadingSpinner from "./components/LoadingSpinner";
 import DiscoverMates from "./pages/posts/DiscoverMates";
 import Contact from "./pages/contact/Contact";
 
@@ -44,7 +44,7 @@ function App() {
     <div className=" bg-slate-100">
           {authUser && <Navbar />}
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={authUser ? <CommunityPosts /> : <HomePage />} />
             <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/posts" />} />
             <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/posts" />} />
             <Route path="/posts" element={authUser ? <CommunityPosts /> : <Navigate to="/" />} />

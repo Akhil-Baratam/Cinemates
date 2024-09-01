@@ -18,7 +18,7 @@ import { Skeleton } from "../../components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import ProfileModal from "../../components/ProfileModal";
 import useFollow from "../../hooks/useFollow";
-import LoadingSpinner from "../../components/LoadinSpinner";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const DiscoverMates = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +49,7 @@ const DiscoverMates = () => {
         return data;
       } catch (error) {
         throw new Error(error.message);
-      }
+      } 
     },
   });
 

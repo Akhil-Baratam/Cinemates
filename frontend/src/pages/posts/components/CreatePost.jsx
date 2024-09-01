@@ -1,6 +1,7 @@
+import React, { useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
-import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -61,47 +62,94 @@ const CreatePost = () => {
   };
 
   return (
-    <div className='flex p-4 items-start gap-4 border-gray-700'>
-      <div className='avatar'>
-        <div className='w-8'>
-          <img className="aspect-square object-cover rounded-full" src={authUser.profileImg || "/avatar-placeholder.png"} />
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'
+    >
+      <div className='flex items-start gap-4'>
+        <div className='flex-shrink-0'>
+          <img 
+            className="w-10 h-10 rounded-full object-cover border-2 border-primary"
+            src={authUser.profileImg || "/avatar-placeholder.png"}
+            alt={authUser.fullName}
+          />
         </div>
-      </div>
-      <form className='flex flex-col gap-2 w-full' onSubmit={handleSubmit}>
-        <textarea
-          className='textarea w-full p-0 text-lg resize-none border-none focus:outline-none border-gray-800'
-          placeholder='What is happening?!'
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <div className='flex flex-wrap gap-2'>
-          {imgs.map((img, index) => (
-            <div key={index} className='relative w-24 h-24'>
-              <IoCloseSharp
-                className='absolute top-0 right-0 text-white bg-gray-800 rounded-full w-5 h-5 cursor-pointer'
-                onClick={() => removeImage(index)}
-              />
-              <img src={img} className='w-full h-full object-cover rounded' />
+        <form className='flex-grow' onSubmit={handleSubmit}>
+          <textarea
+            className='w-full p-2 text-lg resize-none border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition duration-200'
+            placeholder='What is happening?!'
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={2}
+          />
+          <AnimatePresence>
+            {imgs.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className='flex flex-wrap gap-2 mt-2'
+              >
+                {imgs.map((img, index) => (
+                  <motion.div 
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className='relative w-24 h-24'
+                  >
+                    <button
+                      className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition duration-200'
+                      onClick={() => removeImage(index)}
+                    >
+                      <IoCloseSharp className='w-4 h-4' />
+                    </button>
+                    <img src={img} className='w-full h-full object-cover rounded-md' alt={`Uploaded preview ${index + 1}`} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className='flex justify-between items-center mt-2'>
+            <div className='flex gap-2 items-center'>
+              <button
+                type="button"
+                className='text-primary hover:text-primary-dark transition duration-200'
+                onClick={() => imgRef.current.click()}
+              >
+                <CiImageOn className='w-6 h-6' />
+              </button>
+              <button
+                type="button"
+                className='text-primary hover:text-primary-dark transition duration-200'
+              >
+                <BsEmojiSmileFill className='w-5 h-5' />
+              </button>
             </div>
-          ))}
-        </div>
-        <div className='flex justify-between border-t py-2 border-t-gray-700'>
-          <div className='flex gap-1 items-center'>
-            <CiImageOn
-              className='fill-primary w-6 h-6 cursor-pointer'
-              onClick={() => imgRef.current.click()}
-            />
-            <BsEmojiSmileFill className='fill-primary w-5 h-5 cursor-pointer' />
+            <button
+              type="submit"
+              className='px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+              disabled={isPending || text.trim() === ''}
+            >
+              {isPending ? "Posting..." : "Post"}
+            </button>
           </div>
           <input type='file' accept='image/*' multiple hidden ref={imgRef} onChange={handleImgChange} />
-          <button className='btn btn-primary rounded-full btn-sm text-white bg-black px-4 py-1'>
-            {isPending ? "Posting..." : "Post"}
-          </button>
-        </div>
-        {isError && <div className='text-red-500'>{error.message}</div>}
-      </form>
-    </div>
+        </form>
+      </div>
+      {isError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className='mt-2 text-red-500 text-sm'
+        >
+          {error.message}
+        </motion.div>
+      )}
+    </motion.div>
   );
-};
+}
 
 export default CreatePost;
