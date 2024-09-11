@@ -27,10 +27,13 @@ import {
 } from "lucide-react";
 import useFollow from "../hooks/useFollow";
 import LoadingSpinner from "./LoadingSpinner";
+import { useQuery } from "@tanstack/react-query";
 
 const ProfileModal = ({ user, isOpen, onOpenChange }) => {
+  const {data: authUser} = useQuery({queryKey: ["authUser"]});
+
   const [activeTab, setActiveTab] = useState("posts");
-  const [isFollowing, setIsFollowing] = useState(user?.followers.includes(user._id));
+  const [isFollowing, setIsFollowing] = useState(user?.followers.includes(authUser._id));
 
 
   const { follow, isPending, isSuccess } = useFollow();

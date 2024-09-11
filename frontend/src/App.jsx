@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DiscoverMates from "./pages/posts/DiscoverMates";
 import Contact from "./pages/contact/Contact";
+import ExploreAds from "./pages/marketplace/ExploreAds";
 
 function App() {
 
@@ -48,6 +49,7 @@ function App() {
             <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/posts" />} />
             <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/posts" />} />
             <Route path="/posts" element={authUser ? <CommunityPosts /> : <Navigate to="/" />} />
+            <Route path="/ads/explore" element={authUser ? <ExploreAds /> : <Navigate to="/" />} />
             <Route path="/mates" element={authUser ? <DiscoverMates /> : <Navigate to="/" />} />
             <Route path="/contact" element={authUser ? <Contact /> : <Navigate to="/" />} />
             <Route path="/profile/:username" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />

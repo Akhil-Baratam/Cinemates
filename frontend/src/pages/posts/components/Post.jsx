@@ -14,9 +14,11 @@ import {
   AvatarImage,
 } from "../../../components/ui/avatar";
 import LoadingSpinner from "../../../components/LoadingSpinner";
+import ProfileModal from "../../../components/ProfileModal";
+import { CommentSection } from "../../../components/CommentSection";
 
 const Post = ({ post }) => {
-  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState(post.comments);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
@@ -25,6 +27,9 @@ const Post = ({ post }) => {
   const [localLikes, setLocalLikes] = useState(post.likes);
   const isMyPost = authUser._id === post.user._id;
   const formattedDate = "1h"; // For demonstration, format the date as required
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
 
   const { mutate: likePost, isPending: isLiking } = useMutation({
     mutationFn: async () => {
@@ -77,13 +82,45 @@ const Post = ({ post }) => {
     },
   });
 
+  const {mutate: commentPost, isPending: isCommenting} = useMutation({
+    mutationFn: async (newComment) => {
+      try {
+        const res = await fetch(`/api/posts/comment/${post._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: newComment }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    onSuccess: (newComment) => {
+      setComments((prevComments) => [...prevComments, newComment]); // Optimistically update comments state
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return oldData?.map((p) => {
+          if (p._id === post._id) {
+            return { ...p, comments: [...p.comments, newComment] };
+          }
+          return p;
+        });
+      });
+      toast.success("Comment posted successfully");
+    },
+		onError: (error) => {
+			toast.error(error.message);
+		},
+  })
+
   const handleDeletePost = () => {
     deletePost();
   };
 
-  const handlePostComment = (e) => {
-    e.preventDefault();
-  };
 
   const handleLikePost = () => {
     if (isLiking) return;
@@ -106,6 +143,11 @@ const Post = ({ post }) => {
     );
   };
 
+  const handleUserClick = (user) => {
+    setSelectedUser(user);
+    setIsProfileOpen(true);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -116,7 +158,7 @@ const Post = ({ post }) => {
     >
       <div className="p-4 border-border">
         <div className="flex items-center space-x-3">
-          <Link to={`/profile/${postOwner.username}`} className="flex-shrink-0">
+          <div onClick={() => handleUserClick(postOwner)} className="flex-shrink-0 cursor-pointer">
             <Avatar>
               <AvatarImage
                 src={postOwner.profileImg}
@@ -126,21 +168,15 @@ const Post = ({ post }) => {
                 {postOwner.fullName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-          </Link>
+          </div>
           <div className="flex-grow min-w-0">
-            <Link
-              to={`/profile/${postOwner.username}`}
-              className="font-bold text-foreground hover:underline"
-            >
+            <p onClick={() => handleUserClick(postOwner)} className="font-bold text-foreground hover:underline">
               {postOwner.fullName}
-            </Link>
-            <p className=" text-xs text-muted-foreground truncate">
-              <Link
-                to={`/profile/${postOwner.username}`}
-                className="hover:underline"
-              >
+            </p>
+            <p className=" flex min-w-10 text-xs text-muted-foreground truncate">
+              <p className="">
                 @{postOwner.username}
-              </Link>
+              </p>
               <span className="mx-1">·</span>
               <span>{formattedDate}</span>
             </p>
@@ -236,9 +272,10 @@ const Post = ({ post }) => {
             whileHover={{ scale: 1.0 }}
             whileTap={{ scale: 0.9 }}
             className="flex items-center space-x-1 text-muted-foreground"
+            onClick={() => setIsCommentSectionOpen(!isCommentSectionOpen)}
           >
             <FaRegComment className="w-4 h-4" />
-            <span>Comment</span>
+            <span>({post.comments.length})</span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.0 }}
@@ -257,22 +294,21 @@ const Post = ({ post }) => {
             <span>Save</span>
           </motion.button>
         </div>
-        <form
-          onSubmit={handlePostComment}
-          className="flex items-center space-x-2"
-        >
-          <Input
-            type="text"
-            placeholder="Add a comment..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            className="flex-grow"
-          />
-          <Button type="submit" variant="secondary">
-            Comment
-          </Button>
-        </form>
+        <CommentSection
+          postId={post._id}
+          authUser={authUser}
+          comments={comments}
+          isOpen={isCommentSectionOpen}
+          commentPost={commentPost}
+          isCommenting={isCommenting}
+        />
       </div>
+      <ProfileModal
+        key={selectedUser?.id} // Ensuring the modal has a unique key if rendered
+        user={selectedUser}
+        isOpen={isProfileOpen}
+        onOpenChange={setIsProfileOpen}
+      />
     </motion.div>
   );
 };
