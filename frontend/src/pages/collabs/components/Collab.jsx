@@ -1,9 +1,11 @@
-import React from 'react'
+import React,{useState} from 'react'
 
 const Collab = () => {
   return (
-    <div>Collab</div>
+    <div>
+      Collab
+    </div>
   )
 }
 
-export default Collab
+export default Collab 

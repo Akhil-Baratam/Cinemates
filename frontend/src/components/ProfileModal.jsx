@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sheet,
@@ -29,15 +29,21 @@ import useFollow from "../hooks/useFollow";
 import LoadingSpinner from "./LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
 
-const ProfileModal = ({ user, isOpen, onOpenChange }) => {
+const ProfileModal = ({ user, isOpen, onOpenChange }) => { 
   const {data: authUser} = useQuery({queryKey: ["authUser"]});
 
   const [activeTab, setActiveTab] = useState("posts");
-  const [isFollowing, setIsFollowing] = useState(user?.followers.includes(authUser._id));
+  const [isFollowing, setIsFollowing] = useState(false);
 
 
   const { follow, isPending, isSuccess } = useFollow();
   const [loadingUserId, setLoadingUserId] = useState(null);
+
+  useEffect(() => {
+    if (user && authUser) {
+      setIsFollowing(user.followers.includes(authUser._id));
+    }
+  }, [user, authUser]);
 
   const handleFollowClick = async (e, userId) => {
     e.preventDefault();
@@ -48,6 +54,11 @@ const ProfileModal = ({ user, isOpen, onOpenChange }) => {
       },
       onSuccess: () => {
         setIsFollowing(!isFollowing);
+        if (isFollowing) {
+          user.followers = user.followers.filter(id => id !== authUser._id);
+        } else {
+          user.followers.push(authUser._id);
+        }
       },
     });
   };

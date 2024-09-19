@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const adSchema = new mongoose.Schema(
+const rohSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -21,60 +21,50 @@ const adSchema = new mongoose.Schema(
         "Storage and Memory",
         "Studio Setup",
         "Drones and Aerial Equipment",
-		"Mobile Filmmaking"
+        "Mobile Filmmaking",
       ],
     },
-    description: {
+    department: {
       type: String,
       required: true,
+      enum: ["Filmmaking", "Photography", "Audio Production", "Post-Production", "Other"],
     },
-    bought_on: {
-      type: Date,
-      default: Date.now,
+    isForHelp: {
+      type: Boolean,
+      default: false,
       required: true,
     },
-    price: {
+    rentPrice: {
       type: Number,
-      required: true,
+      required: function () {
+        return !this.isForHelp;
+      },
     },
     isNegotiable: {
       type: Boolean,
       default: false,
-	  required: true,
-    },
-    isSold: {
-      type: Boolean,
-      default: false,
-	  required: true,
-    },
-    location: {
-      type: String,
       required: true,
-    },
-    tags: [
-      {
-        type: String,
-      },
-    ],
-    warranty: {
-      type: Boolean,
-      default: false,
     },
     imgs: [
       {
         type: String,
       },
     ],
-    interests: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    comments: [
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5,
+    },
+    reviews: [
       {
         text: {
           type: String,
+          required: true,
+        },
+        rating: {
+          type: Number,
+          min: 0,
+          max: 5,
           required: true,
         },
         user: {
@@ -88,6 +78,6 @@ const adSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Ad = mongoose.model("Ad", adSchema);
+const Roh = mongoose.model("Roh", rohSchema);
 
-module.exports = Ad;
+module.exports = Roh;

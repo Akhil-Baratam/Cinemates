@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
 import Posts from "../posts/components/Posts";
 import ProfileHeaderSkeleton from "../../assets/skeletons/ProfileHeaderSkeleton";
@@ -12,6 +12,7 @@ import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
+import { formatMemberSinceDate } from "../../utils/date";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -21,11 +22,27 @@ const ProfilePage = () => {
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isLoading = false;
+  const {username} = useParams();
+
   const isMyProfile = true;
-
-  const {data: authUser} = useQuery({queryKey: ["authUser"]});
-
+  
+  const {data: user, isLoading, refetch, isRefetching} = useQuery({
+    queryKey: ["UserProfile"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/users/profile/${username}`);
+        const data = await res.json();
+        if(!res.ok){
+          throw new Error(data.error || "Something went wrong");
+        }
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    }
+  });
+  
+  const memberSinceDate = formatMemberSinceDate(user?.createdAt)
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -39,30 +56,34 @@ const ProfilePage = () => {
     }
   };
 
+  useEffect(() => {
+    refetch()
+  },[username, refetch])
+
   return (
     <>
       <div className="flex-1 min-h-screen bg-gray-100">
         {/* HEADER */}
-        {isLoading && <ProfileHeaderSkeleton />}
-        {!isLoading && !authUser && (
+        {isLoading || isRefetching && <ProfileHeaderSkeleton />}
+        {!isLoading || !isRefetching && !user && (
           <p className="text-center text-lg mt-4">User not found</p>
         )}
         <div className="flex flex-col">
-          {!isLoading && authUser && (
+          {!isLoading && !isRefetching && user && (
             <>
               <div className="flex gap-6 px-6 py-4 items-center bg-white shadow-sm">
                 <Link to="/">
                   <FaArrowLeft className="w-5 h-5 text-gray-600" />
                 </Link>
                 <div className="flex flex-col">
-                  <p className="font-semibold text-xl">{authUser?.fullName}</p>
+                  <p className="font-semibold text-xl">{user?.fullName}</p>
                   <span className="text-sm text-gray-500">{POSTS?.length} posts</span>
                 </div>
               </div>
               {/* COVER IMG */}
               <div className="relative group">
                 <img
-                  src={coverImg || authUser?.coverImg || "/cover.png"}
+                  src={coverImg || user?.coverImg || "/cover.png"}
                   className="h-60 w-full object-cover"
                   alt="cover image"
                 />
@@ -91,9 +112,9 @@ const ProfilePage = () => {
                 <div className="absolute -bottom-16 left-6">
                   <div className="w-32 h-32 rounded-full border-4 border-white relative group">
                     <img
-                      src={profileImg || authUser?.profileImg || "/avatar-placeholder.png"}
+                      src={profileImg || user?.profileImg || "/avatar-placeholder.png"}
                       className="rounded-full w-full h-full object-cover"
-                      alt="authUser avatar"
+                      alt="user avatar"
                     />
                     {isMyProfile && (
                       <div
@@ -128,37 +149,37 @@ const ProfilePage = () => {
 
               <div className="flex flex-col gap-4 mt-20 px-6">
                 <div className="flex flex-col">
-                  <span className="font-semibold text-xl">{authUser?.fullName}</span>
-                  <span className="text-sm text-gray-500">@{authUser?.authUsername}</span>
-                  <span className="text-sm mt-2">{authUser?.bio}</span>
+                  <span className="font-semibold text-xl">{user?.fullName}</span>
+                  <span className="text-sm text-gray-500">@{user?.username}</span>
+                  <span className="text-sm mt-2">{user?.bio}</span>
                 </div>
 
                 <div className="flex gap-3 flex-wrap text-gray-600">
-                  {authUser?.link && (
+                  {user?.link && (
                     <div className="flex gap-1 items-center">
                       <FaLink className="w-4 h-4" />
                       <a
-                        href={authUser.link}
+                        href={user.link}
                         target="_blank"
                         rel="noreferrer"
                         className="text-sm text-blue-600 hover:underline"
                       >
-                        {new URL(authUser.link).hostname}
+                        {new URL(user.link).hostname}
                       </a>
                     </div>
                   )}
                   <div className="flex gap-2 items-center">
                     <IoCalendarOutline className="w-5 h-5" />
-                    <span className="text-sm">Joined July 2021</span>
+                    <span className="text-sm">{memberSinceDate}</span>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex gap-1 items-center">
-                    <span className="font-bold text-sm">{authUser?.following.length}</span>
+                    <span className="font-bold text-sm">{user?.following.length}</span>
                     <span className="text-gray-600 text-sm">Following</span>
                   </div>
                   <div className="flex gap-1 items-center">
-                    <span className="font-bold text-sm">{authUser?.followers.length}</span>
+                    <span className="font-bold text-sm">{user?.followers.length}</span>
                     <span className="text-gray-600 text-sm">Followers</span>
                   </div>
                 </div>
@@ -188,7 +209,7 @@ const ProfilePage = () => {
             </>
           )}
 
-          <Posts />
+          <Posts feedType={feedType} username={username} userId={user?._id} />
         </div>
       </div>
     </>

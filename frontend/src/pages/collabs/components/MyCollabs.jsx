@@ -2,7 +2,9 @@ import React from 'react'
 
 const MyCollabs = () => {
   return (
-    <div>MyCollabs</div>
+    <div>
+      
+    </div>
   )
 }
 

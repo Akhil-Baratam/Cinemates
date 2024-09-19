@@ -2,7 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import HomePage from "./pages/home/HomePage";
 import SignUpPage from "./pages/auth/SignupPage";
 import LoginPage from "./pages/auth/LoginPage";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/Navbar/Navbar";
 import ProfilePage from "./pages/profile/ProfilePage";
 import CommunityPosts from "./pages/posts/CommunityPosts";
 import { Toaster } from "react-hot-toast";
@@ -12,6 +12,7 @@ import DiscoverMates from "./pages/posts/DiscoverMates";
 import Contact from "./pages/contact/Contact";
 import ExploreAds from "./pages/marketplace/ExploreAds";
 import ExploreCollabs from "./pages/collabs/ExploreCollabs";
+import NotificationPage from "./pages/notifications/NotificationPage";
 
 function App() {
 
@@ -43,7 +44,7 @@ function App() {
 
   // Ensure that the user is redirected properly
   return (
-    <div className=" bg-slate-100">
+    <div className=" bg-white">
           {authUser && <Navbar />}
           <Routes>
             <Route path="/" element={authUser ? <CommunityPosts /> : <HomePage />} />
@@ -54,6 +55,7 @@ function App() {
             <Route path="/collabs/all" element={authUser ? <ExploreCollabs /> : <Navigate to="/" />} />
             <Route path="/ads/explore" element={authUser ? <ExploreAds /> : <Navigate to="/" />} />
             <Route path="/contact" element={authUser ? <Contact /> : <Navigate to="/" />} />
+            <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/" />} />
             <Route path="/profile/:username" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
           </Routes>
 
@@ -63,3 +65,4 @@ function App() {
 }
 
 export default App;
+ 

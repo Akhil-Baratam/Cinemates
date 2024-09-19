@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Posts = ({ feedType }) => {
+const Posts = ({ feedType, username, userId }) => {
 
   const getPostEndpoint = () => {
     switch (feedType) {
@@ -12,8 +12,10 @@ const Posts = ({ feedType }) => {
         return "/api/posts/all";
       case "following":
         return "/api/posts/following";
-      case "user":
+      case "posts":
         return `/api/posts/user/${username}`;
+      case "likes":
+        return `/api/posts/likes/${userId}`
       default:
         return "/api/posts/all";
     }
@@ -38,14 +40,14 @@ const Posts = ({ feedType }) => {
  
   useEffect(() => {
     refetch();
-  }, []);
+  }, [feedType, username, refetch]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+      className="space-y-6 bg-white dark:bg-gray-800 rounded-lg overflow-hidden"
     >
       <AnimatePresence>
         {(isLoading || isRefetching) && (

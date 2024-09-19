@@ -33,7 +33,7 @@ export const CommentSection = ({
           className="overflow-hidden"
         >
           <div className="border-t border-border p-4">
-            <ScrollArea className="h-[300px] w-full pr-4">
+            <ScrollArea className="h-[200px] w-full pr-4">
               {comments.map((comment) => (
                 <div
                   key={comment._id}

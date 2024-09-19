@@ -16,6 +16,7 @@ import {
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import ProfileModal from "../../../components/ProfileModal";
 import { CommentSection } from "../../../components/CommentSection";
+import { formatPostDate } from "../../../utils/date/index";
 
 const Post = ({ post }) => {
   const [comments, setComments] = useState(post.comments);
@@ -26,7 +27,7 @@ const Post = ({ post }) => {
   const [isLiked, setIsLiked] = useState(post.likes.includes(authUser._id));
   const [localLikes, setLocalLikes] = useState(post.likes);
   const isMyPost = authUser._id === post.user._id;
-  const formattedDate = "1h"; // For demonstration, format the date as required
+  const formattedDate = formatPostDate(post.createdAt); // For demonstration, format the date as required
   const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
@@ -43,7 +44,7 @@ const Post = ({ post }) => {
       } catch (error) {
         throw new Error(error);
       }
-    },
+    }, 
     onSuccess: (updatedLikes) => {
       // queryClient.invalidateQueries({ queryKey: ["posts"] }); //This will refetch all posts which is bad for UX
       //instead update the cache directly for that post
@@ -154,12 +155,12 @@ const Post = ({ post }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="bg-background rounded-lg shadow-md overflow-hidden"
+      className="bg-background rounded-lg border  overflow-hidden"
     >
-      <div className="p-4 border-border">
+      <div className="px-4 pt-4 pb-2 border-border">
         <div className="flex items-center space-x-3">
-          <div onClick={() => handleUserClick(postOwner)} className="flex-shrink-0 cursor-pointer">
-            <Avatar>
+          <div onClick={() => handleUserClick(postOwner)} className="flex-shrink-0 h-12 cursor-pointer">
+            <Avatar className=" h-12 w-12">
               <AvatarImage
                 src={postOwner.profileImg}
                 alt={postOwner.fullName}
@@ -170,16 +171,17 @@ const Post = ({ post }) => {
             </Avatar>
           </div>
           <div className="flex-grow min-w-0">
-            <p onClick={() => handleUserClick(postOwner)} className="font-bold text-foreground hover:underline">
+            <p onClick={() => handleUserClick(postOwner)} className="font-semibold text-sm text-foreground hover:underline">
               {postOwner.fullName}
             </p>
-            <p className=" flex min-w-10 text-xs text-muted-foreground truncate">
-              <p className="">
-                @{postOwner.username}
-              </p>
-              <span className="mx-1">·</span>
+            <div className=" flex-grow min-w-10 text-xs text-muted-foreground truncate">
+              <div className=" flex">
+                <p>@{postOwner.username}</p> 
+                <span className=" px-2">  |  </span> 
+                <p>{postOwner.bio}</p>
+              </div>
               <span>{formattedDate}</span>
-            </p>
+            </div>
           </div>
           {isMyPost && (
             <motion.button
