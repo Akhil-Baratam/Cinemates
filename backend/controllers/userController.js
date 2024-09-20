@@ -110,6 +110,7 @@ const updateUser = async (req, res) => {
         }
 
         if(profileImg) {
+            console.log('Uploading new profile image');
             if(user.profileImg){
                 await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
             }
@@ -124,7 +125,7 @@ const updateUser = async (req, res) => {
             coverImg = uploadedResponse.secure_url;
         }
 
-        user.fullName = fullName || username.fullName;
+        user.fullName = fullName || user.fullName;
         user.email = email || user.email;
         user.username = username || user.username;
         user.bio = bio || user.bio;
@@ -136,7 +137,7 @@ const updateUser = async (req, res) => {
 
         user.password =  null;
 
-        res.status(200).json(user);
+        return res.status(200).json(user);
 
     } catch (error) {
         console.log("Error in updateUser:", error.message)
