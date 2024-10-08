@@ -14,7 +14,7 @@ const SignUpPage = () => {
     email: "",
     username: "",
     fullName: "",
-    password: "",
+    password: "", 
   });
 
   const queryClient = useQueryClient();
