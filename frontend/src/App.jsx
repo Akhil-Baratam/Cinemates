@@ -44,7 +44,7 @@ function App() {
 
   // Ensure that the user is redirected properly
   return (
-    <div className=" bg-white">
+    <div className=" bg-white font-poppins">
           {authUser && <Navbar />}
           <Routes>
             <Route path="/" element={authUser ? <CommunityPosts /> : <HomePage />} />
