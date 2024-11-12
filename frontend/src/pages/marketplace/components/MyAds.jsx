@@ -2,7 +2,9 @@ import React from 'react'
 
 const MyAds = () => {
   return (
-    <div>MyAds</div>
+    <div className=' bg-white h-full'>
+      My Ads
+    </div>
   )
 }
 

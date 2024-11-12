@@ -11,19 +11,15 @@ const adSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    category: {
-      type: String,
-      required: true,
-      enum: [
-        "Cameras and Accessories",
-        "Lighting Equipment",
-        "Audio Gear",
-        "Storage and Memory",
-        "Studio Setup",
-        "Drones and Aerial Equipment",
-		"Mobile Filmmaking"
-      ],
-    },
+    category:
+      {
+        type: String,
+      }, 
+    subcategory: [
+      { 
+        type: String,
+      },
+    ],
     description: {
       type: String,
       required: true,
@@ -40,12 +36,12 @@ const adSchema = new mongoose.Schema(
     isNegotiable: {
       type: Boolean,
       default: false,
-	  required: true,
+      required: true,
     },
     isSold: {
       type: Boolean,
       default: false,
-	  required: true,
+      required: true,
     },
     location: {
       type: String,

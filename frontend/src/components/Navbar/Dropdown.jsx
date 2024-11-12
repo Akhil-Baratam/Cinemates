@@ -32,7 +32,7 @@ const Dropdown = React.memo(({ title, items, currentPath }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute mt-2 bg-white text-black font-light border border-slate-300 rounded-lg shadow-lg whitespace-nowrap z-10"
+            className="absolute bg-white text-black mt-2 font-light border border-slate-300 rounded-sm shadow-lg whitespace-nowrap z-30"
           >
             {items.map((item, index) => (
               <li key={index}>

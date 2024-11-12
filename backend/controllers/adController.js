@@ -8,15 +8,8 @@ const createAd = async (req, res) => {
     const { description, imgs, price, address, bought_on } = req.body;
     const userId = req.user._id.toString();
 
-    // Logging input data for debugging
-    console.log("Received description:", description);
-    console.log("Received images count:", imgs ? imgs.length : "No images");
-    console.log("Received price:", price);
-    console.log("Received address:", address);
-    console.log("Received bought_on:", bought_on);
-
     // Validate that all required fields are provided
-    if (!description) {
+    if (!description) { 
       return res.status(400).json({ error: "Description is required" });
     }
 
@@ -259,3 +252,4 @@ const getUserAds = async (req, res) => {
 
 
 module.exports = { createAd, deleteAd, commentOnAd, interestedAd, getAllAds, getInterestedAds, getUserAds };
+ 

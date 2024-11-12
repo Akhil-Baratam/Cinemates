@@ -14,4 +14,4 @@ router.get("/interested/:id", protectRoute, getInterestedAds);
 router.get("/user/:username", protectRoute, getUserAds);
  
 
-module.exports = router;
+module.exports = router; 

@@ -52,7 +52,7 @@ function App() {
             <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/posts" />} />
             <Route path="/posts" element={authUser ? <CommunityPosts /> : <Navigate to="/" />} />
             <Route path="/mates" element={authUser ? <DiscoverMates /> : <Navigate to="/" />} />
-            <Route path="/collabs/all" element={authUser ? <ExploreCollabs /> : <Navigate to="/" />} />
+            <Route path="/collabs" element={authUser ? <ExploreCollabs /> : <Navigate to="/" />} />
             <Route path="/ads/explore" element={authUser ? <ExploreAds /> : <Navigate to="/" />} />
             <Route path="/contact" element={authUser ? <Contact /> : <Navigate to="/" />} />
             <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/" />} />

@@ -1,5 +1,32 @@
 const mongoose = require("mongoose");
 
+const joinRequestSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  requestDate: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  note: {
+    type: String,
+    required: true,
+  },
+  interestedRole: [
+    {
+      type: String,
+      enum: ["Video Editor", "Audio Mixer", "Cinematographer", "Scriptwriter", "Voice Artist", "Actor", "Director", "Producer", "Other"],
+    },
+  ],
+  experienceLink: {
+    type: String,
+    required: true,
+  },
+});
+
 const collabSchema = new mongoose.Schema(
   {
     user: {
@@ -14,12 +41,12 @@ const collabSchema = new mongoose.Schema(
     projectType: {
       type: String,
       required: true,
-      enum: ["Short Film", "Feature Film", "Documentary", "Music Video", "Commercial", "Youtube Video", "Reels or Shorts", "Other"], // Add more as needed
+      enum: ["Short Film", "Feature Film", "Documentary", "Music Video", "Commercial", "Youtube Video", "Reels or Shorts", "Other"],
     },
     genres: [
       {
         type: String,
-        enum: ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Documentary", "Other"], // Add more as needed
+        enum: ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Documentary", "Other"],
       },
     ],
     description: {
@@ -48,33 +75,36 @@ const collabSchema = new mongoose.Schema(
     requiredCraftsmen: [
       {
         type: String,
-        enum: ["Video Editor", "Audio Mixer", "Cinematographer", "Scriptwriter", "Voice Artist", "Actor", "Director", "Producer", "Other"], // Add more as needed
+        enum: ["Video Editor", "Audio Mixer", "Cinematographer", "Scriptwriter", "Voice Artist", "Actor", "Director", "Producer", "Other"],
       },
-    ],
+    ], 
     imgs: [
       {
         type: String,
       },
     ],
-    interests: [
+    joinRequests: [joinRequestSchema], // Storing all join requests with details
+    acceptedParticipants: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
-    ],
-    comments: [
+    ], // Storing accepted participants
+    rejectedParticipants: [
       {
-        text: {
-          type: String,
-          required: true,
-        },
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
-    ],
+    ], // Storing rejected participants for frontend feedback
+    deadline: {
+      type: Date,
+      required: true, // Deadline to apply
+    },
+    referenceLinks: [
+      {
+        type: String,
+      },
+    ], // Links provided by the creator
   },
   { timestamps: true }
 );

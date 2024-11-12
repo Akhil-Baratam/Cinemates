@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+::-webkit-scrollbar {
+  width: 6px;
+  background-color: transparent;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

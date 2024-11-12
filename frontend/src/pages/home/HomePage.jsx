@@ -309,7 +309,7 @@ function AboutSection() {
           <motion.div
             className="md:w-1/2 mb-8 md:mb-0 pr-4"
             initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            whileInView={{ opacity: 1, x: 0 }} 
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
           >
