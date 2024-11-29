@@ -19,7 +19,7 @@ const CommunityPosts = () => {
   const [feedType, setFeedType] = useState("all");
 
   return (
-    <div className=" bg-white max-w-2xl mx-auto p-4">
+    <div className=" bg-white pt-12 max-w-2xl mx-auto p-4">
       <CreatePost />
       <CardHeader className="px-6 py-4 border-b border-gray-100">
         <div className="flex justify-between items-center">

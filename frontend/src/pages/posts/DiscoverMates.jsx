@@ -61,7 +61,7 @@ const DiscoverMates = () => {
   };
 
   return (
-    <div className="container bg-zinc-50 mx-auto px-16 py-8">
+    <div className="container pt-20 bg-zinc-50 mx-auto px-16 py-8">
       <h1 className="text-4xl font-bold mb-8">Discover Mates</h1>
 
       {/* Filter Component */}

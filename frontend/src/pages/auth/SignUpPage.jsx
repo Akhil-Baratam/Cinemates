@@ -17,7 +17,7 @@ const SignUpPage = () => {
     password: "",
   });
 
-  const queryClient = useQueryClient();
+const queryClient = useQueryClient();
 
  const {mutate, isError, isPending, error} =  useMutation({
   mutationFn: async({email, username, fullName, password}) => {

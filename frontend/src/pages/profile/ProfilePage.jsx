@@ -103,7 +103,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <div className="flex-1 min-h-screen bg-background">
+      <div className="flex-1 min-h-screen bg-background pt-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {isLoading || isRefetching ? (
             <ProfileHeaderSkeleton />

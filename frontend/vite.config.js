@@ -1,5 +1,9 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import dotenv from 'dotenv';
+
+// Load environment variables from the .env file
+dotenv.config();
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,7 +12,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       "/api": {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_REACT_APP_BACKEND_BASEURL,
         changeOrigin: true,
       },
     }

@@ -8,6 +8,7 @@ import CommunityPosts from "./pages/posts/CommunityPosts";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/LoadingSpinner";
+import Chat from "./pages/chat/index";
 import DiscoverMates from "./pages/posts/DiscoverMates";
 import Contact from "./pages/contact/Contact";
 import ExploreAds from "./pages/marketplace/ExploreAds";
@@ -42,7 +43,6 @@ function App() {
     )
   }
 
-  // Ensure that the user is redirected properly
   return (
     <div className=" bg-white font-poppins">
           {authUser && <Navbar />}
@@ -51,6 +51,7 @@ function App() {
             <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/posts" />} />
             <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/posts" />} />
             <Route path="/posts" element={authUser ? <CommunityPosts /> : <Navigate to="/" />} />
+            <Route path="/chat/:id" element={authUser ? <Chat /> : <Navigate to="/" />} />
             <Route path="/mates" element={authUser ? <DiscoverMates /> : <Navigate to="/" />} />
             <Route path="/collabs" element={authUser ? <ExploreCollabs /> : <Navigate to="/" />} />
             <Route path="/ads/explore" element={authUser ? <ExploreAds /> : <Navigate to="/" />} />

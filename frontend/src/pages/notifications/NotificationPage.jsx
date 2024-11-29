@@ -83,7 +83,7 @@ const NotificationPage = () => {
 	});
 
 	return (
-		<div className='flex flex-col max-w-7xl px-4 mx-auto'>
+		<div className='flex flex-col max-w-7xl px-4 pt-16 mx-auto'>
 			<div className='flex justify-between items-center my-8'>
 				<p className='font-medium text-4xl'>Notifications</p>
 
