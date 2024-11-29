@@ -13,10 +13,15 @@ const LoginPage = () => {
     password: "",
   });
 
+  const baseURL =
+  import.meta.env.MODE === "development"
+    ? "" // Use proxy in development
+    : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Use absolute URL in production
+
   const {mutate:loginMutation, isPending, isError, error} = useMutation({
     mutationFn: async ({username, password}) => {
       try {
-        const res = await fetch("/api/auth/login", {
+        const res = await fetch(`${baseURL}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

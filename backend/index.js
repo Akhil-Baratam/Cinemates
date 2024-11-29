@@ -18,7 +18,10 @@ cloudinary.config({
 const app = express();
 
 app.use(cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: [
+        "http://localhost:3000", // Development frontend
+        "https://cinemates-brown.vercel.app", // Production frontend
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true, 
 })
