@@ -26,11 +26,7 @@ const app = express();
 
 // Single CORS configuration
 app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "https://cinemates-brown.vercel.app",
-        "https://cinemates-3cn0gaea2-akhil-baratams-projects.vercel.app"
-    ],
+    origin: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Origin", "X-Requested-With", "Accept", "Authorization"],
