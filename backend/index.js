@@ -28,7 +28,8 @@ const app = express();
 app.use(cors({
     origin: [
         "http://localhost:3000",
-        "https://cinemates-brown.vercel.app"
+        "https://cinemates-brown.vercel.app",
+        "https://cinemates-3cn0gaea2-akhil-baratams-projects.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
