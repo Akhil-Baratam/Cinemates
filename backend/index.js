@@ -18,19 +18,16 @@ cloudinary.config({
 const app = express();
 
 // Remove this conflicting middleware
-// app.use((req, res, next) => {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 // Single CORS configuration
 app.use(cors({
     origin: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Origin", "X-Requested-With", "Accept", "Authorization"],
-    exposedHeaders: ["set-cookie"]
 }));
 
 app.use(express.json({ limit: "10mb" }));
