@@ -96,6 +96,7 @@ const LoginPage = () => {
             {isPending ? "Loading..." : "Login"}
           </button>
           {isError && <p className="text-red-500 mt-4">{error.message}</p>}
+          {isError && console.log("Login error:", error.message)}
         </form>
         <div className="mt-4 flex justify-center gap-4">
           <p className="text-gray-700">{"Don't have an account?"}</p>
