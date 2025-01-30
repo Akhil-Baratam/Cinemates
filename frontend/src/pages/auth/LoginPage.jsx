@@ -14,34 +14,35 @@ const LoginPage = () => {
   });
 
   const baseURL =
-  import.meta.env.MODE === "development"
-    ? "" // Use proxy in development
-    : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Use absolute URL in production
+    import.meta.env.MODE === "development"
+      ? "" // Use proxy in development
+      : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
 
-  const {mutate:loginMutation, isPending, isError, error} = useMutation({
-    mutationFn: async ({username, password}) => {
+  const { mutate: loginMutation, isPending, isError, error } = useMutation({
+    mutationFn: async ({ username, password }) => {
       try {
         const res = await fetch(`${baseURL}/api/auth/login`, {
           method: "POST",
+          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({username, password}),
+          body: JSON.stringify({ username, password }),
         });
 
         const data = await res.json();
 
-        if(!res.ok) throw new Error(data.error || "Something went wrong");
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
 
       } catch (error) {
         throw new Error(error);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ querykey: ["authUser"]});
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
       // toast.success("Login successful");
     }
-  })
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -50,8 +51,7 @@ const LoginPage = () => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  }; 
-
+  };
 
   return (
     <div className="h-screen flex items-center justify-center bg-zinc-800">
