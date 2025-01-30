@@ -19,7 +19,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: true,
+    origin: ["https://cinemates-brown.vercel.app", "https://cinemates-lr5lr27i1-akhil-baratams-projects.vercel.app"],
     credentials: true, // Allow credentials
 }));
 
