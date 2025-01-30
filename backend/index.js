@@ -17,17 +17,10 @@ cloudinary.config({
 
 const app = express();
 
-// Remove this conflicting middleware
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
-
-// Single CORS configuration
+// CORS configuration
 app.use(cors({
-    origin: true,
-    credentials: true,
+    origin: 'https://cinemates-brown.vercel.app', // Allow your frontend origin
+    credentials: true, // Allow credentials
 }));
 
 app.use(express.json({ limit: "10mb" }));
