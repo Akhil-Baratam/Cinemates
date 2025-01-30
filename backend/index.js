@@ -19,7 +19,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: 'https://cinemates-brown.vercel.app', // Allow your frontend origin
+    origin: true,
     credentials: true, // Allow credentials
 }));
 
