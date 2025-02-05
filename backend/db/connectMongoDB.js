@@ -2,16 +2,20 @@ const mongoose = require('mongoose');
 
 const connectMongoDB = async () => {
     try {
-        // Remove deprecated options, keep only the necessary ones
         const options = {
-            serverSelectionTimeoutMS: 5000, // How long to try connecting before timeout
-            socketTimeoutMS: 45000,         // How long to wait for operations
-            family: 4                       // Use IPv4, skip IPv6
+            serverSelectionTimeoutMS: 30000,    // Increase from 5000 to 30000
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 30000,            // Add this
+            family: 4,
+            maxPoolSize: 10,                    // Add connection pool
+            minPoolSize: 5,                     // Add minimum pool size
+            retryWrites: true,                  // Enable retry writes
+            retryReads: true                    // Enable retry reads
         };
 
         const conn = await mongoose.connect(process.env.MONGO_URI, options);
         
-        // Add connection event listeners for better monitoring
+        // Add connection event listeners
         mongoose.connection.on('error', err => {
             console.error('MongoDB connection error:', err);
         });
@@ -20,10 +24,15 @@ const connectMongoDB = async () => {
             console.log('MongoDB disconnected. Attempting to reconnect...');
         });
 
+        mongoose.connection.on('connected', () => {
+            console.log('MongoDB connected successfully');
+        });
+
         console.log(`MongoDB connected: ${conn.connection.host}`);
     } catch (error) {
         console.error(`Error connecting to MongoDB: ${error.message}`);
-        process.exit(1);
+        // Don't exit the process, instead throw the error
+        throw error;
     }
 };
 

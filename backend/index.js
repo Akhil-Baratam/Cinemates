@@ -37,7 +37,17 @@ app.use('/api/notifications', require("./routes/notificationRoutes"));
 
 const port = process.env.PORT;
 
-app.listen(port, () => {
-    console.log(`Server is running on port: ${port}`);
-    connectMongoDB();
-});
+const startServer = async () => {
+    try {
+        await connectMongoDB();
+        app.listen(port, () => {
+            console.log(`Server is running on port: ${port}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        // Wait 5 seconds before retrying
+        setTimeout(startServer, 5000);
+    }
+};
+
+startServer();
