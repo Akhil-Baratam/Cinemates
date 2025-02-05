@@ -60,30 +60,40 @@ const signup = async (req, res) => {
 
 
 const login = async (req, res) => {
+	const startTime = performance.now();
 	try {
-		const { username, password } = req.body;
-		const user = await User.findOne({ username }).lean();
-		const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");
+			const { username, password } = req.body;
+			
+			// Validate input
+			if (!username || !password) {
+					return res.status(400).json({ error: "Username and password are required" });
+			}
 
-		if (!user || !isPasswordCorrect) {
-			return res.status(400).json({ error: "Invalid username or password" });
-		}
+			// Use lean() for better performance and select only needed fields
+			const user = await User.findOne({ username })
+					.select('password fullName username email followers following profileImg coverImg')
+					.lean();
 
-		generateTokenAndSetCookie(user._id, res);
+			if (!user) {
+					return res.status(400).json({ error: "Invalid username or password" });
+			}
 
-		res.status(200).json({
-			_id: user._id,
-			fullName: user.fullName,
-			username: user.username,
-			email: user.email,
-			followers: user.followers,
-			following: user.following,
-			profileImg: user.profileImg,
-			coverImg: user.coverImg,
-		});
+			const isPasswordCorrect = await bcrypt.compare(password, user.password);
+			if (!isPasswordCorrect) {
+					return res.status(400).json({ error: "Invalid username or password" });
+			}
+
+			// Remove password from user object
+			delete user.password;
+
+			// Generate token and set cookie
+			generateTokenAndSetCookie(user._id, res);
+
+			console.log(`Login completed in ${performance.now() - startTime}ms`);
+			return res.status(200).json(user);
 	} catch (error) {
-		console.log("Error in login controller", error.message);
-		res.status(500).json({ error: "Internal Server Error" });
+			console.error("Login error:", error);
+			return res.status(500).json({ error: "Internal Server Error" });
 	}
 };
 

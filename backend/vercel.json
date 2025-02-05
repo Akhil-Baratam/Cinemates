@@ -1,4 +1,10 @@
 {
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
   "installCommand": "npm install --legacy-peer-deps",
   "version": 2,
   "builds": [

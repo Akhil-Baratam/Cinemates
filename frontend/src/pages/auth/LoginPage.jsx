@@ -20,29 +20,52 @@ const LoginPage = () => {
 
   const { mutate: loginMutation, isPending, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
-      try {
-        const res = await fetch(`${baseURL}/api/auth/login`, {
-          method: "POST",
-          credentials: 'include',
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username, password }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-        const data = await res.json();
+        try {
+            const res = await fetch(`${baseURL}/api/auth/login`, {
+                method: "POST",
+                credentials: 'include',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+                signal: controller.signal
+            });
 
-        if (!res.ok) throw new Error(data.error || "Something went wrong");
+            clearTimeout(timeoutId);
 
-      } catch (error) {
-        throw new Error(error);
-      }
+            if (!res.ok) {
+                const errorData = await res.text();
+                try {
+                    const jsonError = JSON.parse(errorData);
+                    throw new Error(jsonError.error || "Login failed");
+                } catch {
+                    throw new Error(errorData || "Login failed");
+                }
+            }
+
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                throw new Error('Request timed out. Please try again.');
+            }
+            throw error;
+        }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
-      // toast.success("Login successful");
+    onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: ["authUser"] });
+        toast.success("Login successful");
+        navigate('/posts');
+    },
+    onError: (error) => {
+        toast.error(error.message || "Login failed");
     }
   });
+
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
