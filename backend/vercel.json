@@ -1,16 +1,13 @@
 {
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
-  "installCommand": "npm install --legacy-peer-deps",
   "version": 2,
   "builds": [
     {
       "src": "index.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60,
+        "memory": 1024
+      }
     }
   ],
   "routes": [
@@ -22,7 +19,9 @@
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Origin": "https://cinemates-brown.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Connection": "keep-alive"
       }
     }
   ]
