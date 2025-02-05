@@ -3,7 +3,10 @@ const jwt = require('jsonwebtoken');
 
 const protectRoute = async (req, res, next) => {
     try {
+        console.log('Cookies received:', req.cookies);
         const token = req.cookies.jwt;
+        console.log('JWT token:', token);
+
         if (!token) {
             return res.status(401).json({ error: "Unauthorized: No Token Provided" });
         }
@@ -23,6 +26,7 @@ const protectRoute = async (req, res, next) => {
         req.user = user; // Set user info in the request object
         next();
     } catch (err) {
+        console.error('Protection error:', err);
         if (err.name === 'TokenExpiredError') {
             console.log("Error: Token has expired", err.message);
             return res.status(401).json({ error: "Session expired. Please log in again." });
