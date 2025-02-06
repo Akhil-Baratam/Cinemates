@@ -86,8 +86,12 @@ const login = async (req, res) => {
 			// Remove password from user object
 			delete user.password;
 
-			// Generate token and set cookie
+			console.log('Generating token for user:', user._id);
 			generateTokenAndSetCookie(user._id, res);
+			console.log('Token generated and cookie should be set');
+			
+			// Log response headers
+			console.log('Response headers:', res.getHeaders());
 
 			console.log(`Login completed in ${performance.now() - startTime}ms`);
 			return res.status(200).json(user);
