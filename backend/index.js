@@ -22,14 +22,15 @@ app.use(cors({
     origin: ["https://cinemates-brown.vercel.app", "https://cinemates-lr5lr27i1-akhil-baratams-projects.vercel.app"],
     credentials: true, // Allow credentials
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['set-cookie']
 }));
 
 app.set('trust proxy', 1);
+app.use(cookieParser());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 app.use('/api/auth', require("./routes/authRoutes"));
 app.use('/api/users', require("./routes/userRoutes"));
