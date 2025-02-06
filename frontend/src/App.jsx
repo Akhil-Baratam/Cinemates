@@ -21,7 +21,12 @@ function App() {
     queryKey: ['authUser'],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch("/api/auth/me", {
+          credentials: 'include',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+        });
         const data = await res.json();
         if(data.error) return null;
         if(!res.ok){
@@ -33,6 +38,7 @@ function App() {
       }
     },
     retry: false,
+    staleTime: 5*60*1000,
   });
 
   if(isLoading) {
