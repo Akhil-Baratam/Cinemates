@@ -20,7 +20,6 @@
         "Access-Control-Allow-Origin": "https://cinemates-brown.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Cookie",
-        "Access-Control-Expose-Headers": "Set-Cookie",
         "Cache-Control": "no-store, no-cache, must-revalidate",
         "Connection": "keep-alive"
       }

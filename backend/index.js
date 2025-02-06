@@ -19,10 +19,12 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: ["https://cinemates-brown.vercel.app", "https://cinemates-lr5lr27i1-akhil-baratams-projects.vercel.app"],
-    credentials: true, // Allow credentials
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['set-cookie']
+    origin: process.env.NODE_ENV === 'production' 
+        ? ["https://cinemates-brown.vercel.app"]
+        : "http://localhost:5173",
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.set('trust proxy', 1);

@@ -14,6 +14,8 @@ export default defineConfig({
       "/api": {
         target: process.env.VITE_REACT_APP_BACKEND_BASEURL,
         changeOrigin: true,
+        secure: false,
+        credentials: 'include'
       },
     }
   },
