@@ -29,14 +29,14 @@ const Navbar = () => {
   const currentPath = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const baseURL =
-  import.meta.env.MODE === "development"
-    ? "" // Use proxy in development
-    : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
+  // const baseURL =
+  // import.meta.env.MODE === "development"
+  //   ? "" // Use proxy in development
+  //   : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
 
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${baseURL}/api/auth/logout`, {
+      const res = await fetch(`${import.meta.env.baseURL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
