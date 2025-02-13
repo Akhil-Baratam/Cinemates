@@ -3,37 +3,63 @@ const jwt = require('jsonwebtoken');
 
 const protectRoute = async (req, res, next) => {
     try {
-        console.log('Cookies received:', req.cookies);
         const token = req.cookies.jwt;
-        console.log('JWT token:', token);
 
         if (!token) {
-            return res.status(401).json({ error: "Unauthorized: No Token Provided" });
+            return res.status(401).json({ 
+                error: "Unauthorized: No Token Provided",
+                isAuthenticated: false 
+            });
         }
 
-        // Verify the token and handle potential expiration
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        if (!decoded) {
-            return res.status(401).json({ error: "Unauthorized: Invalid Token" });
+        try {
+            // Verify the token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            
+            // Find the user and include only necessary fields
+            const user = await User.findById(decoded.userId)
+                .select("-password")
+                .lean();  // Using lean for better performance
+
+            if (!user) {
+                return res.status(401).json({ 
+                    error: "User not found",
+                    isAuthenticated: false 
+                });
+            }
+
+            // Add user and auth status to request
+            req.user = user;
+            req.isAuthenticated = true;
+            next();
+
+        } catch (tokenError) {
+            // Handle specific token errors
+            if (tokenError.name === 'TokenExpiredError') {
+                return res.status(401).json({ 
+                    error: "Session expired. Please log in again.",
+                    isAuthenticated: false,
+                    isExpired: true
+                });
+            }
+            
+            if (tokenError.name === 'JsonWebTokenError') {
+                return res.status(401).json({ 
+                    error: "Invalid token. Please log in again.",
+                    isAuthenticated: false,
+                    isInvalid: true
+                });
+            }
+
+            throw tokenError; // Re-throw unexpected token errors
         }
 
-        // Find the user associated with the token
-        const user = await User.findById(decoded.userId).select("-password");
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        req.user = user; // Set user info in the request object
-        next();
     } catch (err) {
         console.error('Protection error:', err);
-        if (err.name === 'TokenExpiredError') {
-            console.log("Error: Token has expired", err.message);
-            return res.status(401).json({ error: "Session expired. Please log in again." });
-        }
-        
-        console.log("Error in protectRoute middleware", err.message);
-        return res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({ 
+            error: "Internal Server Error",
+            isAuthenticated: false 
+        });
     }
 };
 

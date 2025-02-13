@@ -60,10 +60,23 @@ const LoginPage = () => {
             throw error;
         }
     },
-    onSuccess: (data) => {
-        queryClient.invalidateQueries({ queryKey: ["authUser"] });
-        toast.success("Login successful");
-        navigate('/posts');
+    onSuccess: async (data) => {
+        // First invalidate the auth query
+        await queryClient.invalidateQueries({ queryKey: ["authUser"] });
+        
+        // Fetch the latest auth state
+        const updatedUser = await queryClient.fetchQuery({ 
+            queryKey: ["authUser"],
+            staleTime: 0 // Force a fresh fetch
+        });
+
+        // Only navigate if we have a valid user
+        if (updatedUser) {
+            toast.success("Login successful");
+            navigate('/posts', { replace: true }); // Using replace to prevent back navigation to login
+        } else {
+            toast.error("Authentication failed. Please try again.");
+        }
     },
     onError: (error) => {
         toast.error(error.message || "Login failed");

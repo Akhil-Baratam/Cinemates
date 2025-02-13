@@ -27,14 +27,13 @@ function App() {
               'Content-Type': 'application/json'
           }
         });
-        if(!res.ok){
+        const data = await res.json();
+        if (!res.ok) {
           throw new Error(data.error || "Something went wrong");
         }
-
-        const data = await res.json();
         return data;
       } catch (error) {
-        console.log("Auth check error:", error);
+        console.error("Auth check error:", error);
         return null;
       }
     },
