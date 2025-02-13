@@ -104,13 +104,27 @@ const login = async (req, res) => {
  
 const logout = async (req, res) => {
     try {
-		res.cookie("jwt", "", { maxAge: 0 });
-		res.status(200).json({ message: "Logged out successfully" });
-	} catch (error) {
-		console.log("Error in logout controller", error.message);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+        // Clear the JWT cookie
+        res.cookie("jwt", "", {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            expires: new Date(0),
+            path: '/'
+        });
+
+        res.status(200).json({ 
+            message: "Logged out successfully",
+            isAuthenticated: false 
+        });
+    } catch (error) {
+        console.error("Logout error:", error);
+        res.status(500).json({ 
+            error: "Internal Server Error",
+            isAuthenticated: true 
+        });
     }
+};
 
 const getMe = async (req, res) => {
     try {

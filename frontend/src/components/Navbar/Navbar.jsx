@@ -34,14 +34,20 @@ const Navbar = () => {
       const res = await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.Error || "Something went wrong");
+      if (!res.ok) throw new Error(data.error || "Something went wrong");
       return data;
     },
     onSuccess: () => {
+      queryClient.setQueryData(["authUser"], null);
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
       toast.success("Logged out successfully");
+      window.location.href = '/';
     },
     onError: (error) => {
       toast.error(error.message || "Logout failed");
