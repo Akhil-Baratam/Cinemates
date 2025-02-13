@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { MdOutlineMail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
@@ -17,30 +18,62 @@ const SignUpPage = () => {
     password: "",
   });
 
-const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
- const {mutate, isError, isPending, error} =  useMutation({
-  mutationFn: async({email, username, fullName, password}) => {
-    try {
-      const res = await fetch("api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, fullName, password }),
+  const {mutate, isError, isPending, error} = useMutation({
+    mutationFn: async({email, username, fullName, password}) => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/signup`, {
+          method: "POST",
+          credentials: 'include',
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({ email, username, fullName, password }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.text();
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || "Signup failed");
+          } catch {
+            throw new Error(errorData || "Signup failed");
+          }
+        }
+
+        const data = await res.json();
+        return data;
+      } catch (error) {
+        console.error("Signup error:", error);
+        throw error;
+      }
+    },
+    onSuccess: async (data) => {
+      // First invalidate the auth query
+      await queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      
+      // Fetch the latest auth state
+      const updatedUser = await queryClient.fetchQuery({ 
+        queryKey: ["authUser"],
+        staleTime: 0 // Force a fresh fetch
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Something went wrong");
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.error(error);
-      throw error;
+      // Only show success if we have a valid user
+      if (updatedUser) {
+        toast.success("Account created successfully!");
+        navigate('/posts', { replace: true });
+      } else {
+        toast.error("Account created but login failed. Please try logging in.");
+        navigate('/login');
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Signup failed");
     }
-  },
-  onSuccess: () => {
-    toast.success("Account created successfully!");
-  }
- });
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault(); //page wont reload
