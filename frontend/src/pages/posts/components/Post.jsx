@@ -35,21 +35,24 @@ const Post = ({ post }) => {
   const { mutate: likePost, isPending: isLiking } = useMutation({
     mutationFn: async () => {
       try {
-        const res = await fetch(`/api/posts/like/${post._id}`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/posts/like/${post._id}`, {
           method: "POST",
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Something went wrong");
         return data;
       } catch (error) {
-        throw new Error(error);
+        throw error;
       }
     }, 
     onSuccess: (updatedLikes) => {
-      // queryClient.invalidateQueries({ queryKey: ["posts"] }); //This will refetch all posts which is bad for UX
-      //instead update the cache directly for that post
-      setLocalLikes(updatedLikes); // Update local state
-      setIsLiked(updatedLikes.includes(authUser._id)); // Update isLiked state
+      setLocalLikes(updatedLikes);
+      setIsLiked(updatedLikes.includes(authUser._id));
       queryClient.setQueryData(["posts"], (oldData) => {
         return oldData?.map((p) => {
           if (p._id === post._id) {
@@ -67,20 +70,28 @@ const Post = ({ post }) => {
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
       try {
-        const res = await fetch(`/api/posts/${post._id}`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/posts/${post._id}`, {
           method: "DELETE",
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Something went wrong");
         return data;
       } catch (error) {
-        throw new Error(error);
+        throw error;
       }
     },
     onSuccess: () => {
       toast.success("Post deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete post");
+    }
   });
 
   const {mutate: commentPost, isPending: isCommenting} = useMutation({

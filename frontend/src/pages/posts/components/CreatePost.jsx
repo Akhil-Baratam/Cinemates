@@ -17,10 +17,12 @@ const CreatePost = () => {
   const { mutate: createPost, isPending, isError, error } = useMutation({
     mutationFn: async ({ text, imgs }) => {
       try {
-        const res = await fetch("/api/posts/create", {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/posts/create`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            "Accept": "application/json"
           },
           body: JSON.stringify({ text, imgs }),
         });
@@ -30,7 +32,7 @@ const CreatePost = () => {
         }
         return data;
       } catch (error) {
-        throw new Error(error);
+        throw error;
       }
     },
     onSuccess: () => {
@@ -39,6 +41,9 @@ const CreatePost = () => {
       toast.success("Post created successfully");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create post");
+    }
   });
 
   const handleSubmit = (e) => {

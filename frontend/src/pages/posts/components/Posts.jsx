@@ -3,6 +3,7 @@ import PostSkeleton from "../../../assets/skeletons/PostSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from "react-hot-toast";
 
 const Posts = ({ feedType, username, userId }) => {
 
@@ -27,15 +28,31 @@ const Posts = ({ feedType, username, userId }) => {
     queryKey: ["posts", feedType],
     queryFn: async () => {
       try {
-        const res = await fetch(POST_ENDPOINT);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Something went wrong");
-        return data;
+        const res = await fetch(POST_ENDPOINT, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!res.ok) {
+          const errorData = await res.text();
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || "Failed to fetch posts");
+          } catch {
+            throw new Error(errorData || "Failed to fetch posts");
+          }
+        }
+        return res.json();
       } catch (error) {
-        console.error(error);
-        return [];
+        console.error("Error fetching posts:", error);
+        throw error;
       }
     },
+    onError: (error) => {
+      toast.error(error.message || "Failed to load posts");
+    }
   });
  
   useEffect(() => {
