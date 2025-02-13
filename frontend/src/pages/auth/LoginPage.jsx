@@ -13,19 +13,13 @@ const LoginPage = () => {
     password: "",
   });
 
-  const baseURL =
-    import.meta.env.MODE === "development"
-      ? "" // Use proxy in development
-      : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
-
   const { mutate: loginMutation, isPending, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
-      console.log('Making request to:', `${baseURL}/api/auth/login`);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
         try {
-            const res = await fetch(`${baseURL}/api/auth/login`, {
+            const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 credentials: 'include',
                 headers: {

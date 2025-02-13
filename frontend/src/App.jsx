@@ -17,16 +17,16 @@ import NotificationPage from "./pages/notifications/NotificationPage";
 
 function App() {
 
-  const baseURL =
-    import.meta.env.MODE === "development"
-      ? "" // Use proxy in development
-      : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
+  // const baseURL =
+  //   import.meta.env.MODE === "development"
+  //     ? "" // Use proxy in development
+  //     : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; 
 
   const {data: authUser, isLoading} = useQuery({
     queryKey: ['authUser'],
     queryFn: async () => {
       try {
-        const res = await fetch(`${baseURL}/api/auth/me`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/me`, {
           credentials: 'include',
           headers: {
               'Content-Type': 'application/json',

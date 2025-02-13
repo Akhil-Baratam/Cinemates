@@ -29,10 +29,6 @@ const Navbar = () => {
   const currentPath = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // const baseURL =
-  // import.meta.env.MODE === "development"
-  //   ? "" // Use proxy in development
-  //   : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
 
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
