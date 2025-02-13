@@ -190,13 +190,21 @@ const getFollowingPosts = async (req, res) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    const following = user.following;
+    const following = user.following || [];
+
+    // If user isn't following anyone, return empty array
+    if (following.length === 0) {
+      return res.status(200).json([]);
+    }
 
     const feedPosts = await Post.find({ user: { $in: following } })
       .sort({ createdAt: -1 })
-      .populate({
+      .populate({ 
         path: "user",
         select: "-password",
       })
@@ -205,10 +213,15 @@ const getFollowingPosts = async (req, res) => {
         select: "-password",
       });
 
+    // If no posts found, return empty array
+    if (!feedPosts) {
+      return res.status(200).json([]);
+    }
+
     res.status(200).json(feedPosts);
   } catch (error) {
-    console.log("Error in getFollowingPosts controller: ", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error in getFollowingPosts controller: ", error);
+    res.status(500).json({ error: "Failed to fetch following posts" });
   }
 };
 

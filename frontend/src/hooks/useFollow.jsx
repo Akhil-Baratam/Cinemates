@@ -12,25 +12,38 @@ const useFollow = () => {
   } = useMutation({
     mutationFn: async (userId) => {
       try {
-        const res = await fetch(`/api/users/follow/${userId}`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/follow/${userId}`, {
           method: "POST",
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         });
-        const data = await res.json();
+
         if (!res.ok) {
-          throw new Error("Failed to update follow status");
+          const errorData = await res.text();
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || "Failed to update follow status");
+          } catch {
+            throw new Error(errorData || "Failed to update follow status");
+          }
         }
-        return data;
+
+        return res.json();
       } catch (error) {
-        throw new Error(error.message);
+        console.error("Error following user:", error);
+        throw error;
       }
     },
     onSuccess: () => {
       toast.success("Follow status updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] }),
+      queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] });
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
-    onError: () => {
-      toast.error("Failed to update follow status");
+    onError: (error) => {
+      toast.error(error.message || "Failed to update follow status");
     },
   });
 

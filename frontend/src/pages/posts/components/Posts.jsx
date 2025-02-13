@@ -35,6 +35,7 @@ const Posts = ({ feedType, username, userId }) => {
             'Content-Type': 'application/json'
           }
         });
+        
         if (!res.ok) {
           const errorData = await res.text();
           try {
@@ -44,12 +45,15 @@ const Posts = ({ feedType, username, userId }) => {
             throw new Error(errorData || "Failed to fetch posts");
           }
         }
-        return res.json();
+        const data = await res.json();
+        console.log("Fetched posts:", data);
+        return data;
       } catch (error) {
         console.error("Error fetching posts:", error);
         throw error;
       }
     },
+    enabled: !!feedType,
     onError: (error) => {
       toast.error(error.message || "Failed to load posts");
     }

@@ -26,28 +26,61 @@ const NotificationPage = () => {
 		queryKey: ["notifications"],
 		queryFn: async () => { 
 			try {
-				const res = await fetch("/api/notifications");
-				const data = await res.json();
-				if (!res.ok) throw new Error(data.error || "Something went wrong");
-				return data;
+				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/notifications`, {
+					credentials: 'include',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (!res.ok) {
+					const errorData = await res.text();
+					try {
+						const jsonError = JSON.parse(errorData);
+						throw new Error(jsonError.error || "Failed to fetch notifications");
+					} catch {
+						throw new Error(errorData || "Failed to fetch notifications");
+					}
+				}
+
+				return res.json();
 			} catch (error) {
-				throw new Error(error.message);
+				console.error("Error fetching notifications:", error);
+				throw error;
 			}
 		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to load notifications");
+		}
 	});
 
 	const { mutate: deleteNotifications } = useMutation({
 		mutationFn: async () => {
 			try {
-				const res = await fetch("/api/notifications", {
+				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/notifications`, {
 					method: "DELETE",
+					credentials: 'include',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					}
 				});
-				const data = await res.json();
 
-				if (!res.ok) throw new Error(data.error || "Something went wrong");
-				return data;
-			} catch (error) { 
-				throw new Error(error.message);
+				if (!res.ok) {
+					const errorData = await res.text();
+					try {
+						const jsonError = JSON.parse(errorData);
+						throw new Error(jsonError.error || "Failed to delete notifications");
+					} catch {
+						throw new Error(errorData || "Failed to delete notifications");
+					}
+				}
+
+				return res.json();
+			} catch (error) {
+				console.error("Error deleting notifications:", error);
+				throw error;
 			}
 		},
 		onSuccess: () => {
@@ -55,7 +88,7 @@ const NotificationPage = () => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 		},
 		onError: (error) => {
-			toast.error(error.message);
+			toast.error(error.message || "Failed to delete notifications");
 		},
 	});
 
