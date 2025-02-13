@@ -36,7 +36,7 @@ const Navbar = () => {
 
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${import.meta.env.baseURL}/api/auth/logout`, {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
