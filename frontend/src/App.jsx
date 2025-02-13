@@ -17,28 +17,52 @@ import NotificationPage from "./pages/notifications/NotificationPage";
 
 function App() {
 
+  const baseURL =
+    import.meta.env.MODE === "development"
+      ? "" // Use proxy in development
+      : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; // Ensure this is set correctly
+
   const {data: authUser, isLoading} = useQuery({
     queryKey: ['authUser'],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/auth/me", {
+        const res = await fetch(`${baseURL}/api/auth/me`, {
           credentials: 'include',
           headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
           }
         });
+
+        // Check content type before parsing
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error("Received non-JSON response");
+          return null;
+        }
+
         const data = await res.json();
+        
         if (!res.ok) {
+          if (res.status === 401) {
+            return null; // Handle unauthorized gracefully
+          }
           throw new Error(data.error || "Something went wrong");
         }
+        
         return data;
       } catch (error) {
-        console.error("Auth check error:", error);
+        // Log the full error for debugging
+        console.error("Auth check error details:", {
+          message: error.message,
+          stack: error.stack
+        });
         return null;
       }
     },
     retry: false,
     staleTime: 5*60*1000,
+    refetchOnWindowFocus: false
   });
 
   if(isLoading) {
