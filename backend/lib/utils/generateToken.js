@@ -7,13 +7,13 @@ const generateTokenAndSetCookie = (userId, res) => {
     const cookieOptions = {
         maxAge,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: true,
+        sameSite: 'none',
         path: '/',
         isDevelopment: process.env.NODE_ENV !== 'production',
-        domain: process.env.NODE_ENV === 'production' 
-            ? '.vercel.app'  // Update this to your exact domain
-            : 'localhost'
+        // domain: process.env.NODE_ENV === 'production' 
+        //     ? '.vercel.app' 
+        //     : 'localhost'
     };
 
     res.cookie("jwt", token, cookieOptions);

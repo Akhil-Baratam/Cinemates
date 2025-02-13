@@ -20,6 +20,7 @@ const LoginPage = () => {
 
   const { mutate: loginMutation, isPending, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
+      console.log('Making request to:', `${baseURL}/api/auth/login`);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
@@ -32,6 +33,10 @@ const LoginPage = () => {
                 },
                 body: JSON.stringify({ username, password }),
                 signal: controller.signal
+            });
+            console.log('Response headers:', {
+              'set-cookie': res.headers.get('set-cookie'),
+              'all headers': Array.from(res.headers.entries())
             });
 
             clearTimeout(timeoutId);
