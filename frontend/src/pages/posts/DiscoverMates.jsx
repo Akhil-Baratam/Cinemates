@@ -19,6 +19,8 @@ import { useQuery } from "@tanstack/react-query";
 import ProfileModal from "../../components/ProfileModal";
 import useFollow from "../../hooks/useFollow";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import UserCard from "./components/UserCard";
+import toast from "react-hot-toast";
 
 const DiscoverMates = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,18 +41,42 @@ const DiscoverMates = () => {
     });
   };
 
-  const { data: suggestedUsers, isLoading } = useQuery({
-    queryKey: ["suggestedUsers"],
+  const { data: users, isLoading, error } = useQuery({
+    queryKey: ['users'],
     queryFn: async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/suggested`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Something went wrong");
-        return data;
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/suggestedusers`, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!res.ok) {
+          const errorData = await res.text();
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || "Failed to fetch users");
+          } catch {
+            throw new Error(errorData || "Failed to fetch users");
+          }
+        }
+
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Invalid response format");
+        }
+
+        return res.json();
       } catch (error) {
-        throw new Error(error.message);
-      } 
+        console.error("Error fetching users:", error);
+        throw error;
+      }
     },
+    onError: (error) => {
+      toast.error(error.message || "Failed to load users");
+    }
   });
 
   const { follow, isPending } = useFollow();
@@ -59,6 +85,22 @@ const DiscoverMates = () => {
     setSelectedUser(user);
     setIsProfileOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 mt-10">
+        Failed to load users. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="container pt-20 bg-zinc-50 mx-auto px-16 py-8">
@@ -99,52 +141,10 @@ const DiscoverMates = () => {
       </div>
 
       {/* User Suggestions Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {isLoading &&
-          Array(8)
-            .fill(0)
-            .map((_, index) => (
-              <Card
-                key={`skeleton-${index}`}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-              >
-                <CardContent className="p-4 flex flex-col items-center">
-                  <Skeleton className="w-24 h-24 rounded-full mb-4" />
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-3 w-1/2 mb-4" />
-                  <Skeleton className="h-9 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-        {!isLoading &&
-          suggestedUsers?.map((user) => (
-            <Card
-              key={user._id}              
-              className="cursor-pointer bg-white hover:drop-shadow-lg transition-shadow"
-            >
-              <CardContent onClick={() => handleUserClick(user)} className="p-4 flex flex-col items-center">
-                <Avatar className="w-24 h-24 mb-4">
-                  <AvatarImage src={user.profileImg} alt={user.fullName} />
-                  <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <h3 className="font-semibold text-lg">{user.fullName}</h3>
-                <p className="text-sm text-gray-500 mb-4">@{user.username}</p>
-              </CardContent>
-              <CardFooter>
-              <Button
-              className="w-full"
-              onClick={(e) => handleFollowClick(e, user._id)}
-              disabled={loadingUserId === user._id} // Disable button while loading
-            >
-              {loadingUserId === user._id ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                "Follow"
-              )}
-            </Button>
-          </CardFooter>
-            </Card>
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl px-4">
+        {users?.map((user) => (
+          <UserCard key={user._id} user={user} />
+        ))}
       </div>
 
       <ProfileModal
