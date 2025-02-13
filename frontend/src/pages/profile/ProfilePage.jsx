@@ -26,6 +26,7 @@ import EditProfileForm from "./EditProfileForm";
 import useFollow from "../../hooks/useFollow";
 import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 import { EllipsisVertical } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -50,16 +51,38 @@ const ProfilePage = () => {
     queryKey: ["UserProfile"],
     queryFn: async () => {
       try {
-        const res = await fetch(`/api/auth/me`);
-        const data = await res.json();
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/me`, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
         if (!res.ok) {
-          throw new Error(data.error || "Something went wrong");
+          const errorData = await res.text();
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || "Failed to fetch profile");
+          } catch {
+            throw new Error(errorData || "Failed to fetch profile");
+          }
         }
-        return data;
+
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Invalid response format");
+        }
+
+        return res.json();
       } catch (error) {
-        throw new Error(error);
+        console.error("Error fetching profile:", error);
+        throw error;
       }
     },
+    onError: (error) => {
+      toast.error(error.message || "Failed to load profile");
+    }
   });
 
   const { isUpdatingProfile, updateProfile } = useUpdateUserProfile();

@@ -97,23 +97,39 @@ const Post = ({ post }) => {
   const {mutate: commentPost, isPending: isCommenting} = useMutation({
     mutationFn: async (newComment) => {
       try {
-        const res = await fetch(`/api/posts/comment/${post._id}`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/posts/comment/${post._id}`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            'Accept': 'application/json'
           },
           body: JSON.stringify({ text: newComment }),
         });
-        const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || "Something went wrong");
-        return data;
+        if (!res.ok) {
+          const errorData = await res.text();
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || "Failed to post comment");
+          } catch {
+            throw new Error(errorData || "Failed to post comment");
+          }
+        }
+
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Invalid response format");
+        }
+
+        return res.json();
       } catch (error) {
-        throw new Error(error);
+        console.error("Error posting comment:", error);
+        throw error;
       }
     },
     onSuccess: (newComment) => {
-      setComments((prevComments) => [...prevComments, newComment]); // Optimistically update comments state
+      setComments((prevComments) => [...prevComments, newComment]);
       queryClient.setQueryData(["posts"], (oldData) => {
         return oldData?.map((p) => {
           if (p._id === post._id) {
@@ -124,9 +140,9 @@ const Post = ({ post }) => {
       });
       toast.success("Comment posted successfully");
     },
-		onError: (error) => {
-			toast.error(error.message);
-		},
+    onError: (error) => {
+      toast.error(error.message || "Failed to post comment");
+    },
   })
 
   const handleDeletePost = () => {

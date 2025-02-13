@@ -6,22 +6,36 @@ const useUpdateUserProfile = () => {
 
 	const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useMutation({
 		mutationFn: async (formData) => {
-			console.log(formData);
 			try {
-				const res = await fetch(`/api/users/update`, {
+				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update`, {
 					method: "POST",
+					credentials: "include",
 					headers: {
 						"Content-Type": "application/json",
+						"Accept": "application/json"
 					},
 					body: JSON.stringify(formData),
 				});
-				const data = await res.json();
+
 				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong");
+					const errorData = await res.text();
+					try {
+						const jsonError = JSON.parse(errorData);
+						throw new Error(jsonError.error || "Failed to update profile");
+					} catch {
+						throw new Error(errorData || "Failed to update profile");
+					}
 				}
-				return data;
+
+				const contentType = res.headers.get("content-type");
+				if (!contentType || !contentType.includes("application/json")) {
+					throw new Error("Invalid response format");
+				}
+
+				return res.json();
 			} catch (error) {
-				throw new Error(error.message);
+				console.error("Error updating profile:", error);
+				throw error;
 			}
 		},
 		onSuccess: () => {
@@ -32,7 +46,7 @@ const useUpdateUserProfile = () => {
 			]);
 		},
 		onError: (error) => {
-			toast.error(error.message);
+			toast.error(error.message || "Failed to update profile");
 		},
 	});
 
