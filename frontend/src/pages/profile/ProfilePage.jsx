@@ -48,10 +48,10 @@ const ProfilePage = () => {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: ["UserProfile"],
+    queryKey: ["UserProfile", username],
     queryFn: async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/me`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/profile/${username}`, {
           credentials: 'include',
           headers: {
             'Accept': 'application/json',

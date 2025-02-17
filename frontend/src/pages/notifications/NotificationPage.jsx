@@ -17,43 +17,12 @@ import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
 import { User, ChevronRight, X } from "lucide-react";
 import { formatPostDate } from '../../utils/date/index';
+import useNotifications from "../../hooks/useNotifications";
 
 const NotificationPage = () => {
 	const queryClient = useQueryClient();
 	
-
-	const { data: notifications, isLoading } = useQuery({
-		queryKey: ["notifications"],
-		queryFn: async () => { 
-			try {
-				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/notifications`, {
-					credentials: 'include',
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (!res.ok) {
-					const errorData = await res.text();
-					try {
-						const jsonError = JSON.parse(errorData);
-						throw new Error(jsonError.error || "Failed to fetch notifications");
-					} catch {
-						throw new Error(errorData || "Failed to fetch notifications");
-					}
-				}
-
-				return res.json();
-			} catch (error) {
-				console.error("Error fetching notifications:", error);
-				throw error;
-			}
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to load notifications");
-		}
-	});
+	const { data: notifications, isLoading } = useNotifications();
 
 	const { mutate: deleteNotifications } = useMutation({
 		mutationFn: async () => {

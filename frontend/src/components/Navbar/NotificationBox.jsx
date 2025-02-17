@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 import { formatPostDate } from "../../utils/date/index";
+import useNotifications from "../../hooks/useNotifications";
 
 const NotificationBox = React.memo(({ authUser }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,8 +36,7 @@ const NotificationBox = React.memo(({ authUser }) => {
     };
   }, [isOpen]);
 
-  const {data: notifications, isLoading} = useQuery({queryKey: ["notifications"]});
-
+  const { data: notifications, isLoading } = useNotifications();
 
   const { mutate: deleteNotification } = useMutation({
     mutationFn: async (notificationId) => {
