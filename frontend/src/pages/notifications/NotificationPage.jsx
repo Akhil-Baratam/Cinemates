@@ -13,8 +13,8 @@ import {
 } from "../../components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";  
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
-import { FaHeart } from "react-icons/fa6";
+import { FaUser, FaHeart } from "react-icons/fa";
+import { FaComment } from "react-icons/fa6";
 import { User, ChevronRight, X } from "lucide-react";
 import { formatPostDate } from '../../utils/date/index';
 import useNotifications from "../../hooks/useNotifications";
@@ -64,8 +64,13 @@ const NotificationPage = () => {
 	const { mutate: deleteNotification } = useMutation({
 		mutationFn: async (notificationId) => {
 			try {
-				const res = await fetch(`/api/notifications/${notificationId}`, {
+				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/notifications/${notificationId}`, {
 					method: "DELETE",
+					credentials: "include",
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					}
 				});
 				const data = await res.json();
 
@@ -115,6 +120,8 @@ const NotificationPage = () => {
 							<div className='flex gap-2 items-center p-4'>
 								{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
 								{notification.type === "like" && <FaHeart className='w-7 h-7 text-red-500' />}
+								{notification.type === "unfollow" && <FaUser className='w-7 h-7 text-gray-500' />}
+								{notification.type === "comment" && <FaComment className='w-7 h-7 text-blue-500' />}
 								<Link className="ml-4" to={`/profile/${notification.from.username}`}>
 									<Avatar className="h-12 w-12">
 										<AvatarImage
@@ -128,10 +135,13 @@ const NotificationPage = () => {
 								</Link>
 								<div className='flex gap-1 ml-5'>
 									<span className='font-bold'>@{notification.from.username}</span>{" "}
-									{notification.type === "follow" ? "followed you" : "liked your post"}
+									{notification.type === "follow" && "followed you"}
+									{notification.type === "like" && "liked your post"}
+									{notification.type === "unfollow" && "unfollowed you"}
+									{notification.type === "comment" && "commented on your post"}
 								</div>
 							</div>
-							<div className="flex gap-8 items-center">
+							<div className="flex gap-10 items-center">
 								<Link className="flex items-center hover:underline" to={`/profile/${notification.from.username}`}>
 									<span className='font-semibold'>View Profile</span>
 									<ChevronRight className="h-5" />

@@ -1,9 +1,22 @@
 import Post from "./Post";
 import PostSkeleton from "../../../assets/skeletons/PostSkeleton";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { Suspense, useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from "react-hot-toast";
+import { QueryClient } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 const Posts = ({ feedType, username, userId }) => {
 
@@ -24,18 +37,24 @@ const Posts = ({ feedType, username, userId }) => {
 
   const POST_ENDPOINT = getPostEndpoint();
 
-  const { data: posts, isLoading, refetch, isRefetching } = useQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading
+  } = useInfiniteQuery({
     queryKey: ["posts", feedType],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await fetch(POST_ENDPOINT, {
+        const res = await fetch(`${POST_ENDPOINT}?page=${pageParam}&limit=10`, {
           credentials: 'include',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
         });
-        
+
         if (!res.ok) {
           const errorData = await res.text();
           try {
@@ -45,74 +64,112 @@ const Posts = ({ feedType, username, userId }) => {
             throw new Error(errorData || "Failed to fetch posts");
           }
         }
+
         const data = await res.json();
-        console.log("Fetched posts:", data);
+        
+        // Log the response to see its structure
+        console.log("API Response:", data);
+
+        // Check if data exists and has the expected structure
+        if (!data || (typeof data === 'object' && !Array.isArray(data.posts) && !Array.isArray(data))) {
+          console.error("Unexpected data structure:", data);
+          throw new Error("Invalid response format");
+        }
+
+        // If data is an array directly, wrap it
+        if (Array.isArray(data)) {
+          return {
+            posts: data,
+            nextPage: pageParam + 1
+          };
+        }
+
+        // If data has posts array
         return data;
       } catch (error) {
         console.error("Error fetching posts:", error);
         throw error;
       }
     },
-    enabled: !!feedType,
-    onError: (error) => {
-      toast.error(error.message || "Failed to load posts");
-    }
+    getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
   });
- 
+
   useEffect(() => {
-    refetch();
-  }, [feedType, username, refetch]);
+    fetchNextPage();
+  }, [feedType, username, fetchNextPage]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6 bg-white dark:bg-gray-800 rounded-lg overflow-hidden"
+    <ErrorBoundary
+      fallback={<div>Something went wrong. Please try again later.</div>}
+      onError={(error, errorInfo) => {
+        // Log to your error reporting service
+        console.error('Error:', error, errorInfo);
+      }}
     >
-      <AnimatePresence>
-        {(isLoading || isRefetching) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col space-y-4 p-4"
-          >
-            <PostSkeleton />
-            <PostSkeleton />
-          </motion.div>
-        )}
-        {!isLoading && !isRefetching && posts?.length === 0 && (
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center text-gray-500 dark:text-gray-400 p-8"
-          >
-            No posts available. Start the conversation!
-          </motion.p>
-        )}
-        {!isLoading && !isRefetching && posts && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1 }}
-            className="space-y-4"
-          >
-            {posts.map((post) => (
+      <Suspense fallback={<LoadingSpinner />}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-6 bg-white dark:bg-gray-800 rounded-lg overflow-hidden"
+        >
+          <AnimatePresence>
+            {(isLoading || isFetchingNextPage) && (
               <motion.div
-                key={post._id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col space-y-4 p-4"
+              >
+                <PostSkeleton />
+                <PostSkeleton />
+              </motion.div>
+            )}
+            {!isLoading && !isFetchingNextPage && data?.pages[0].posts?.length === 0 && (
+              <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
+                className="text-center text-gray-500 dark:text-gray-400 p-8"
               >
-                <Post post={post} />
+                No posts available. Start the conversation!
+              </motion.p>
+            )}
+            {!isLoading && !isFetchingNextPage && data && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ staggerChildren: 0.1 }}
+                className="space-y-4"
+              >
+                {data.pages.map((page) => (
+                  page.posts && (
+                    <motion.div
+                      key={page.nextPage}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {page.posts.map((post) => (
+                        <motion.div
+                          key={post._id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Post post={post} />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 

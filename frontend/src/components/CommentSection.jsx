@@ -5,6 +5,25 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 
+// Helper function to format dates consistently
+const formatCommentDate = (dateString) => {
+  if (!dateString) return "Just now";
+  
+  try {
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return "Just now";
+    }
+    
+    return date.toLocaleString();
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Just now";
+  }
+};
+
 export const CommentSection = ({
   postId,
   authUser,
@@ -60,9 +79,7 @@ export const CommentSection = ({
                         {comment.text}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {comment.createdAt
-                          ? new Date(comment.createdAt).toLocaleString()
-                          : "Invalid Date"}
+                        {formatCommentDate(comment.createdAt)}
                       </p>
                     </div>
                   </div>

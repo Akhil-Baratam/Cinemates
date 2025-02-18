@@ -41,6 +41,7 @@ const useFollow = () => {
       toast.success("Follow status updated successfully");
       queryClient.invalidateQueries({ queryKey: ["suggestedUsers"] });
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      queryClient.invalidateQueries({ queryKey: ["UserProfile"] });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update follow status");

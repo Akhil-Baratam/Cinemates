@@ -41,8 +41,13 @@ const NotificationBox = React.memo(({ authUser }) => {
   const { mutate: deleteNotification } = useMutation({
     mutationFn: async (notificationId) => {
       try {
-        const res = await fetch(`/api/notifications/${notificationId}`, {
+        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/notifications/${notificationId}`, {
           method: "DELETE",
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Something went wrong");
@@ -113,8 +118,10 @@ const NotificationBox = React.memo(({ authUser }) => {
                       <div>
                         <p className="text-sm">
                           <span className="font-semibold">{notification.from.username}</span>{" "}
-                          {notification.type === "follow" ? "followed you" : "liked your post"}
-                        </p>
+									        {notification.type === "follow" && "followed you"}
+									        {notification.type === "like" && "liked your post"}
+									        {notification.type === "unfollow" && "unfollowed you"}
+									        {notification.type === "comment" && "commented on your post"}                        </p>
                         <p className="text-xs text-gray-500">
                           {formatPostDate(notification.createdAt)}
                         </p>

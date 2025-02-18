@@ -94,56 +94,58 @@ const Post = ({ post }) => {
     }
   });
 
-  const {mutate: commentPost, isPending: isCommenting} = useMutation({
-    mutationFn: async (newComment) => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/posts/comment/${post._id}`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ text: newComment }),
-        });
+// This is just the part that needs updating in the Post.jsx file
+// Only showing the commentPost mutation part
 
-        if (!res.ok) {
-          const errorData = await res.text();
-          try {
-            const jsonError = JSON.parse(errorData);
-            throw new Error(jsonError.error || "Failed to post comment");
-          } catch {
-            throw new Error(errorData || "Failed to post comment");
-          }
-        }
+const { mutate: commentPost, isPending: isCommenting } = useMutation({
+  mutationFn: async (commentText) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/posts/comment/${post._id}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: commentText })
+      });
 
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Invalid response format");
-        }
-
-        return res.json();
-      } catch (error) {
-        console.error("Error posting comment:", error);
-        throw error;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to add comment");
       }
-    },
-    onSuccess: (newComment) => {
-      setComments((prevComments) => [...prevComments, newComment]);
-      queryClient.setQueryData(["posts"], (oldData) => {
-        return oldData?.map((p) => {
+
+      // The updated controller now returns just the new comment
+      const newComment = await res.json();
+      return newComment;
+    } catch (error) {
+      throw error;
+    }
+  },
+  onSuccess: (newComment) => {
+    setComments(prev => [...prev, newComment]);
+    // Update the post's comments count in the cache
+    queryClient.setQueryData(["posts"], (oldData) => {
+      if (!oldData?.pages) return oldData;
+      
+      return oldData.pages.map(page => ({
+        ...page,
+        posts: page.posts.map(p => {
           if (p._id === post._id) {
-            return { ...p, comments: [...p.comments, newComment] };
+            return {
+              ...p,
+              comments: [...p.comments, newComment]
+            };
           }
           return p;
-        });
-      });
-      toast.success("Comment posted successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to post comment");
-    },
-  })
+        })
+      }));
+    });
+  },
+  onError: (error) => {
+    toast.error(error.message || "Failed to add comment");
+  }
+});
 
   const handleDeletePost = () => {
     deletePost();

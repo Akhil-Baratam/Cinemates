@@ -92,6 +92,13 @@ const Navbar = () => {
     setIsMobileMenuOpen((prev) => !prev);
   }, []);
 
+  const prefetchNotifications = () => {
+    queryClient.prefetchQuery({
+      queryKey: ['notifications'],
+      queryFn: notificationsFetcher
+    });
+  };
+
   return (
     <ErrorBoundary fallback={<div>Something went wrong</div>}>
       <nav className="relative bg-white z-40 shadow-lg">

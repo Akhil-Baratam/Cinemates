@@ -31,6 +31,8 @@ const useNotifications = () => {
       }
     },
     refetchInterval: 30000,
+    staleTime: 15000,
+    cacheTime: 1000 * 60 * 5,
     onError: (error) => {
       toast.error(error.message || "Failed to load notifications");
     }

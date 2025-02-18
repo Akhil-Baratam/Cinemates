@@ -78,18 +78,39 @@ const commentOnPost = async (req, res) => {
     if (!text) {
       return res.status(400).json({ error: "Text field is required" });
     }
+    
     const post = await Post.findById(postId);
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
 
+    // Create the comment with text and user
     const comment = { user: userId, text };
-
+    
+    // Push the comment to the post's comments array
     post.comments.push(comment);
     await post.save();
 
-    res.status(200).json(post);
+    const commentNotification = new Notification({
+      type: "comment",
+      from: userId,
+      to: post.user,
+    });
+    await commentNotification.save();
+
+    // Find the newly created comment to return with populated user data
+    const updatedPost = await Post.findById(postId)
+      .populate({
+        path: 'comments.user',
+        select: '_id username fullName profileImg'
+      });
+    
+    // Get the newly added comment (the last one)
+    const newComment = updatedPost.comments[updatedPost.comments.length - 1];
+
+    // Return just the new comment with all necessary data
+    res.status(200).json(newComment);
   } catch (error) {
     console.log("Error in commentOnPost controller: ", error);
     res.status(500).json({ error: "Internal server error" });
