@@ -64,7 +64,7 @@ const SignUpPage = () => {
       // Only show success if we have a valid user
       if (updatedUser) {
         toast.success("Account created successfully!");
-        navigate('/posts', { replace: true });
+        navigate('/onboarding', { replace: true });
       } else {
         toast.error("Account created but login failed. Please try logging in.");
         navigate('/login');

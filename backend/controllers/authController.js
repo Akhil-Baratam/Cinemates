@@ -136,4 +136,26 @@ const getMe = async (req, res) => {
 	}
 }
 
-module.exports = { signup, login, logout, getMe };
+const onboarding = async (req, res) => {
+    try {
+        const userId = req.user._id; // Assuming you have middleware to protect this route
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Here you can return any necessary data for onboarding
+        res.status(200).json({
+            onboardingCompleted: user.onboardingCompleted,
+            interests: user.interests,
+            preferredCollabTypes: user.preferredCollabTypes,
+            // Add any other relevant data
+        });
+    } catch (error) {
+        console.error("Error in onboarding controller:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+module.exports = { signup, login, logout, getMe, onboarding };

@@ -161,19 +161,13 @@ const Navbar = () => {
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className=" mr-4">
-                  <DropdownMenuItem>
-                    <Link
-                      to={`/profile/${authUser?.username}`}
-                      className=""
-                    >
+                  <Link to={`/profile/${authUser?.username}`}>
+                    <DropdownMenuItem>
                       Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={handleLogout}
-                      className=""
-                    >
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <button>
                       Logout
                     </button>  
                   </DropdownMenuItem>

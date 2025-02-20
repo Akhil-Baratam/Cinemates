@@ -14,6 +14,7 @@ import Contact from "./pages/contact/Contact";
 import ExploreAds from "./pages/marketplace/ExploreAds";
 import ExploreCollabs from "./pages/collabs/ExploreCollabs";
 import NotificationPage from "./pages/notifications/NotificationPage";
+import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
 function App() {
 
@@ -88,6 +89,7 @@ function App() {
             <Route path="/contact" element={authUser ? <Contact /> : <Navigate to="/" />} />
             <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/" />} />
             <Route path="/profile/:username" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
+            <Route path="/onboarding" element={authUser ? <OnboardingPage /> : <Navigate to="/login" />} />
           </Routes>
 
       <Toaster />

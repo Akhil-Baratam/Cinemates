@@ -264,9 +264,9 @@ const ProfilePage = () => {
               <Tabs defaultValue="account" className="w-full mt-8">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="account">Account settings</TabsTrigger>
-                <TabsTrigger value="password">Posts</TabsTrigger>
-                <TabsTrigger value="orders">Collabs</TabsTrigger>
-                <TabsTrigger value="notifications">Ads</TabsTrigger>
+                <TabsTrigger value="posts">Posts</TabsTrigger>
+                <TabsTrigger value="collabs">Collabs</TabsTrigger>
+                <TabsTrigger value="ads">Ads</TabsTrigger>
               </TabsList>
               <TabsContent value="account">
                 <Card>
@@ -318,9 +318,9 @@ const ProfilePage = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              <TabsContent value="password">Password management content</TabsContent>
-              <TabsContent value="orders">Order history content</TabsContent>
-              <TabsContent value="notifications">Notification settings</TabsContent>
+              <TabsContent value="posts">User's posts</TabsContent>
+              <TabsContent value="collabs">Order history content</TabsContent>
+              <TabsContent value="ads">Notification settings</TabsContent>
             </Tabs>
             </>
           )}
