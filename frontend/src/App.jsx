@@ -16,12 +16,7 @@ import ExploreCollabs from "./pages/collabs/ExploreCollabs";
 import NotificationPage from "./pages/notifications/NotificationPage";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
-function App() {
-
-  // const baseURL =
-  //   import.meta.env.MODE === "development"
-  //     ? "" // Use proxy in development
-  //     : import.meta.env.VITE_REACT_APP_BACKEND_BASEURL; 
+function App() { 
 
   const {data: authUser, isLoading} = useQuery({
     queryKey: ['authUser'],
@@ -76,7 +71,8 @@ function App() {
 
   return (
     <div className=" bg-white font-poppins">
-          {authUser && <Navbar />}
+          {authUser && !window.location.pathname.includes('/onboarding') && <Navbar />}
+
           <Routes>
             <Route path="/" element={authUser ? <CommunityPosts /> : <HomePage />} />
             <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/posts" />} />
@@ -90,6 +86,8 @@ function App() {
             <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/" />} />
             <Route path="/profile/:username" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
             <Route path="/onboarding" element={authUser ? <OnboardingPage /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/" />} />
+
           </Routes>
 
       <Toaster />
