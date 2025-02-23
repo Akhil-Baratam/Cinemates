@@ -7,6 +7,8 @@ import { cn } from "../../lib/utils"
 import Step1 from "./Step1"
 import Step2 from "./Step2"
 import Step3 from "./Step3"
+import { toast } from "react-hot-toast"
+import { useNavigate } from "react-router-dom"
 
 const steps = [
   {
@@ -27,6 +29,7 @@ const steps = [
 ]
 
 const OnboardingForm = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0)
   const [formData, setFormData] = useState({
     fullName: "",
@@ -61,10 +64,43 @@ const OnboardingForm = () => {
     setStep((prev) => Math.max(prev - 1, 0))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log("Form submitted:", formData)
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Remove empty fields before sending
+    const sanitizedData = Object.fromEntries(
+      Object.entries(formData).filter(([_, value]) => value !== "" && value !== null)
+    );
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/onboarding`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(sanitizedData), // Send as JSON
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to complete onboarding");
+        }
+
+        const data = await response.json();
+
+        if (!data.username) {
+          throw new Error("Username is missing from the response!");
+        }
+      
+        toast.success("Onboarding completed successfully!");
+        navigate(`/profile/${data.username}`);
+    } catch (error) {
+        console.error("Error during onboarding submission:", error);
+        toast.error(error.message || "Onboarding failed");
+    }
+};
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -97,26 +133,42 @@ const OnboardingForm = () => {
               const Icon = s.icon
               return (
                 <div key={i} className="flex items-start flex-1 lg:flex-none">
-                  <div className="relative">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.3, delay: i * 0.1 }}
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300",
-                        i === step
-                          ? "border-gray-900 bg-gray-50"
-                          : i < step
-                            ? "border-gray-900 bg-gray-900"
-                            : "border-gray-200 bg-white",
+                  <div className="relative flex flex-col items-center">
+                    <div className="relative flex items-center">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3, delay: i * 0.1 }}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-300",
+                          i === step
+                            ? "border-gray-900 bg-gray-50"
+                            : i < step
+                              ? "border-gray-900 bg-gray-900"
+                              : "border-gray-200 bg-white",
+                        )}
+                      >
+                        {i < step ? (
+                          <Check className="h-4 w-4 text-white" />
+                        ) : (
+                          <Icon className={cn("h-4 w-4", i === step ? "text-gray-900" : "text-gray-400")} />
+                        )}
+                      </motion.div>
+                      {/* Horizontal line for mobile/tablet */}
+                      {i < steps.length - 1 && (
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "80px" }}
+                          transition={{ duration: 0.9, delay: i * 0.5 }}
+                          className={cn(
+                            "lg:hidden absolute left-full top-1/2 -translate-y-1/2 h-0.5 ml-2", // Position line relative to icon
+                            i < step ? "bg-gray-900" : "bg-gray-200"
+                          )}
+                        />
                       )}
-                    >
-                      {i < step ? (
-                        <Check className="h-4 w-4 text-white" />
-                      ) : (
-                        <Icon className={cn("h-4 w-4", i === step ? "text-gray-900" : "text-gray-400")} />
-                      )}
-                    </motion.div>
+                    </div>
+                    
+                    {/* Vertical line for desktop */}
                     {i < steps.length - 1 && (
                       <motion.div
                         initial={{ height: 0 }}
@@ -129,7 +181,7 @@ const OnboardingForm = () => {
                       />
                     )}
                     {/* Badge for Step Title */}
-                    <div className="lg:hidden text-center mt-2">
+                    <div className="lg:hidden mt-2 text-nowrap">
                       <span className="bg-slate-50 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
                         {s.title}
                       </span>

@@ -30,7 +30,7 @@ const EditProfileForm = ({ authUser }) => {
         bio: authUser.bio,
         link: authUser.link,
       });
-    }
+    } 
   }, [authUser]);
 
   const handleSubmit = (e) => {

@@ -1,8 +1,15 @@
+import { useRef, useState } from "react";
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 
 const Step1 = ({ formData, updateFormData }) => {
+
+  const [coverImgPreview, setCoverImgPreview] = useState(null);
+  const [profileImgPreview, setProfileImgPreview] = useState(null);
+  const coverImgRef = useRef(null);
+  const profileImgRef = useRef(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target
     updateFormData({ [name]: value })
@@ -12,6 +19,23 @@ const Step1 = ({ formData, updateFormData }) => {
     const { name, files } = e.target
     updateFormData({ [name]: files[0] })
   }
+
+  const handleImgChange = (e, type) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            updateFormData({ [type]: reader.result }); // Store Base64 string
+            if (type === "profileImg") {
+                setProfileImgPreview(reader.result);
+            } else if (type === "coverImg") {
+                setCoverImgPreview(reader.result);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
 
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -54,14 +78,24 @@ const Step1 = ({ formData, updateFormData }) => {
         <Label htmlFor="profileImg" className="text-sm font-medium">
           Profile Image
         </Label>
-        <Input id="profileImg" name="profileImg" type="file" onChange={handleFileChange} accept="image/*" />
+        <div>
+          <Input id="profileImg" name="profileImg" type="file" ref={profileImgRef} onChange={(e) => handleImgChange(e, "profileImg")} accept="image/*" />
+          {profileImgPreview && (
+            <img src={profileImgPreview} alt="Profile Preview" className="mt-2 w-20 h-20 object-cover rounded-full" />
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="coverImg" className="text-sm font-medium">
           Cover Image
         </Label>
-        <Input id="coverImg" name="coverImg" type="file" onChange={handleFileChange} accept="image/*" />
+        <div>
+          <Input id="coverImg" name="coverImg" type="file" ref={coverImgRef} onChange={(e) => handleImgChange(e, "coverImg")} accept="image/*" />
+          {coverImgPreview && (
+            <img src={coverImgPreview} alt="Cover Preview" className="mt-2 w-full h-32 object-cover rounded" />
+          )}
+        </div>
       </div>
 
       <div className="space-y-2 col-span-2">

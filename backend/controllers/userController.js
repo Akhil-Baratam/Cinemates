@@ -92,7 +92,18 @@ const getSuggestedUsers = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-    const {fullName, email, username, currentPassword, newPassword, bio, link} = req.body;
+    const {fullName, email, username, currentPassword, newPassword, bio, link,
+        profession,
+        skills,
+        experienceLevel,
+        genres,
+        location,
+        availableForCollaboration,
+        interests,
+        preferredCollabTypes,
+        pastProjects,
+        equipmentOwned,
+    } = req.body;
     let {profileImg, coverImg} = req.body;
 
     const userId = req.user._id;
@@ -140,6 +151,17 @@ const updateUser = async (req, res) => {
         user.link = link || user.link;
         user.profileImg = profileImg || user.profileImg;
         user.coverImg = coverImg || user.coverImg;
+        user.profession = profession;
+        user.skills = skills;
+        user.experienceLevel = experienceLevel;
+        user.genres = genres;
+        user.location = location;
+        user.availableForCollaboration = availableForCollaboration;
+        user.interests = interests;
+        user.preferredCollabTypes = preferredCollabTypes;
+        user.pastProjects = pastProjects;
+        user.equipmentOwned = equipmentOwned;
+        user.onboardingCompleted = true; // Mark onboarding as completed
  
         user = await user.save();
 

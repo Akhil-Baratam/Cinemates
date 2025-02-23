@@ -4,25 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
-
-// Helper function to format dates consistently
-const formatCommentDate = (dateString) => {
-  if (!dateString) return "Just now";
-  
-  try {
-    const date = new Date(dateString);
-    
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return "Just now";
-    }
-    
-    return date.toLocaleString();
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return "Just now";
-  }
-};
+import formatCommentDate from "../utils/dateUtils";
 
 export const CommentSection = ({
   postId,
@@ -59,7 +41,7 @@ export const CommentSection = ({
                   className="mb-4 pb-4 border-b last:border-b-0"
                 >
                   <div className="flex items-start space-x-2">
-                    <Avatar className="w-8 h-8">
+                    <Avatar className="w-12 h-12">
                       {comment.user ? (
                         <>
                           <AvatarImage
@@ -72,13 +54,13 @@ export const CommentSection = ({
                       )}
                     </Avatar>
                     <div>
-                      <p className="font-semibold text-sm">
+                      <p className="font-semibold text-xxs">
                         {comment.user?.fullName || "Unknown User"}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs font text-accent-foreground">
                         {comment.text}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xxs font-light text-muted-foreground">
                         {formatCommentDate(comment.createdAt)}
                       </p>
                     </div>

@@ -104,8 +104,11 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    refetch();
-  }, [username, refetch]);
+    if (!isUpdatingProfile && (profileImg || coverImg)) {
+        refetch(); // Refresh user data after profile update
+    }
+}, [isUpdatingProfile, profileImg, coverImg, refetch]);
+
 
   const renderSettingsContent = () => {
     switch (activeSettingsTab) {
@@ -134,7 +137,7 @@ const ProfilePage = () => {
             <p className="text-center text-lg mt-4">User not found</p>
           ) : (
             <>
-              <div className="relative mb-8">
+              <div className="relative mb-8 group">
                 <motion.img
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -143,6 +146,16 @@ const ProfilePage = () => {
                   className="w-full h-48 object-cover rounded-lg shadow-md"
                   alt="cover image"
                 />
+                {isMyProfile && (
+                  <div
+                    className="absolute top-2 right-2 p-1 bg-black/50 rounded-full cursor-pointer 
+                                opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+                              hover:bg-black/70"
+                    onClick={() => coverImgRef.current.click()}
+                  >
+                    <MdEdit className="text-white text-lg" />
+                  </div>
+                )}
                 <div className="absolute -bottom-16 left-6 mb-4">
                   <div className="relative group">
                     <Avatar className="h-32 w-32 rounded-full border-4 border-background object-cover shadow-lg">
@@ -160,7 +173,7 @@ const ProfilePage = () => {
                     </Avatar>
                     {isMyProfile && (
                       <div
-                        className="absolute top-0 right-0 p-1 mt-2 mr-2 bg-primary rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-0 right-0 p-1 mt-2 mr-2 bg-primary rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         onClick={() => profileImgRef.current.click()}
                       >
                         <MdEdit className="text-white text-sm" />
@@ -180,14 +193,6 @@ const ProfilePage = () => {
                   ref={profileImgRef}
                   onChange={(e) => handleImgChange(e, "profileImg")}
                 />
-                {isMyProfile && (
-                  <div
-                    className="absolute top-2 right-2 p-1 z-10 bg-primary rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => coverImgRef.current.click()}
-                  >
-                    <MdEdit className="text-white text-lg" />
-                  </div>
-                )}
               </div>
               <div className="flex justify-between items-center mt-12">
                 <div className=" flex items-center gap-2 mt-2">
@@ -243,7 +248,7 @@ const ProfilePage = () => {
                   )}
                   <div className="flex items-center">
                     <IoCalendarOutline className="w-4 h-4 mr-2" />
-                    Joined {memberSinceDate}
+                    {memberSinceDate}
                   </div>
                 </div>
                 <div className="flex gap-8 mt-4">

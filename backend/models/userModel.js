@@ -21,12 +21,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    roles: [
-      {
-        type: String,
-        required: true,
-      }
-    ],
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -49,9 +49,9 @@ const Step2 = ({ formData, updateFormData }) => {
             <SelectValue placeholder="Select experience level" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="beginner">Beginner</SelectItem>
-            <SelectItem value="intermediate">Intermediate</SelectItem>
-            <SelectItem value="professional">Professional</SelectItem>
+            <SelectItem value="Beginner">Beginner</SelectItem>
+            <SelectItem value="Intermediate">Intermediate</SelectItem>
+            <SelectItem value="Professional">Professional</SelectItem>
           </SelectContent>
         </Select>
       </div>

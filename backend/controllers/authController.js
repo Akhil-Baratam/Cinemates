@@ -1,6 +1,8 @@
 const generateTokenAndSetCookie = require('../lib/utils/generateToken.js');
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
+var cloudinary = require('cloudinary').v2;
+
 
 const signup = async (req, res) => {
 	try { 
@@ -136,26 +138,90 @@ const getMe = async (req, res) => {
 	}
 }
 
-const onboarding = async (req, res) => {
-    try {
-        const userId = req.user._id; // Assuming you have middleware to protect this route
-        const user = await User.findById(userId);
+const onboardingSubmit = async (req, res) => {
+	try {
+			const {
+					fullName,
+					username,
+					email,
+					password,
+					bio,
+					link,
+					profession,
+					skills,
+					experienceLevel,
+					genres,
+					location,
+					availableForCollaboration,
+					interests,
+					preferredCollabTypes,
+					pastProjects,
+					equipmentOwned,
+					profileImg,
+					coverImg
+			} = req.body;
 
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+			const userId = req.user._id;
+			const user = await User.findById(userId);
 
-        // Here you can return any necessary data for onboarding
-        res.status(200).json({
-            onboardingCompleted: user.onboardingCompleted,
-            interests: user.interests,
-            preferredCollabTypes: user.preferredCollabTypes,
-            // Add any other relevant data
-        });
-    } catch (error) {
-        console.error("Error in onboarding controller:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+			if (!user) {
+					return res.status(404).json({ error: "User not found" });
+			}
+
+			let profileImgUrl = user.profileImg;
+			let coverImgUrl = user.coverImg;
+
+			// Upload Profile Image if provided
+			if (profileImg) {
+					console.log('Uploading new profile image...');
+					if (user.profileImg) {
+							await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
+					}
+					const uploadedResponse = await cloudinary.uploader.upload(profileImg);
+					profileImgUrl = uploadedResponse.secure_url;
+			}
+
+			// Upload Cover Image if provided
+			if (coverImg) {
+					console.log('Uploading new cover image...');
+					if (user.coverImg) {
+							await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
+					}
+					const uploadedResponse = await cloudinary.uploader.upload(coverImg);
+					coverImgUrl = uploadedResponse.secure_url;
+			}
+
+			// Update user fields
+			user.fullName = fullName;
+			user.username = username;
+			user.email = email;
+			user.password = password; // Ensure password is hashed before saving
+			user.profileImg = profileImgUrl;
+			user.coverImg = coverImgUrl;
+			user.bio = bio;
+			user.link = link;
+			user.profession = profession;
+			user.skills = skills;
+			user.experienceLevel = experienceLevel;
+			user.genres = genres;
+			user.location = location;
+			user.availableForCollaboration = availableForCollaboration;
+			user.interests = interests;
+			user.preferredCollabTypes = preferredCollabTypes;
+			user.pastProjects = pastProjects;
+			user.equipmentOwned = equipmentOwned;
+			user.onboardingCompleted = true;
+
+			await user.save();
+      // Fetch the latest user data
+			const updatedUser = await User.findById(user._id).select("username");
+
+			res.status(200).json({ message: "Onboarding completed successfully", username: updatedUser.username });
+	} catch (error) {
+			console.error("Error in onboardingSubmit controller:", error);
+			res.status(500).json({ error: "Internal Server Error" });
+	}
 };
 
-module.exports = { signup, login, logout, getMe, onboarding };
+
+module.exports = { signup, login, logout, getMe, onboardingSubmit };
