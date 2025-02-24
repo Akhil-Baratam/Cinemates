@@ -13,8 +13,6 @@ import toast from "react-hot-toast";
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
     email: "",
-    username: "",
-    fullName: "",
     password: "",
   });
 
@@ -22,7 +20,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
 
   const {mutate, isError, isPending, error} = useMutation({
-    mutationFn: async({email, username, fullName, password}) => {
+    mutationFn: async({email, password}) => {
       try {
         const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/signup`, {
           method: "POST",
@@ -31,7 +29,7 @@ const SignUpPage = () => {
             "Content-Type": "application/json",
             "Accept": "application/json"
           },
-          body: JSON.stringify({ email, username, fullName, password }),
+          body: JSON.stringify({ email, password }),
         });
 
         if (!res.ok) {
@@ -105,7 +103,7 @@ const SignUpPage = () => {
               />
             </div>
           </div>
-          <div className="flex flex-col mb-4">
+          {/* <div className="flex flex-col mb-4">
             <div className="flex items-center border border-zinc-500 rounded-lg p-2">
               <FaUser className="text-gray-400 mr-2" />
               <input
@@ -130,7 +128,7 @@ const SignUpPage = () => {
                 value={formData.fullName}
               />
             </div>
-          </div>
+          </div> */}
           <div className="flex flex-col mb-4">
             <div className="flex items-center border border-zinc-500 rounded-lg p-2">
               <MdPassword className="text-gray-400 mr-2" />

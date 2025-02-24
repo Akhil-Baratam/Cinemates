@@ -6,16 +6,11 @@ var cloudinary = require('cloudinary').v2;
 
 const signup = async (req, res) => {
 	try { 
-		const { fullName, username, email, password } = req.body;
+		const { email, password } = req.body;
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
 			return res.status(400).json({ error: "Invalid email format" });
-		}
-
-		const existingUser = await User.findOne({ username });
-		if (existingUser) {
-			return res.status(400).json({ error: "Username is already taken" });
 		}
 
 		const existingEmail = await User.findOne({ email });
@@ -31,8 +26,6 @@ const signup = async (req, res) => {
 		const hashedPassword = await bcrypt.hash(password, salt);
 
 		const newUser = new User({
-			fullName,
-			username,
 			email,
 			password: hashedPassword,
 		}); 
@@ -43,13 +36,7 @@ const signup = async (req, res) => {
 
 			res.status(201).json({
 				_id: newUser._id,
-				fullName: newUser.fullName,
-				username: newUser.username,
 				email: newUser.email,
-				followers: newUser.followers,
-				following: newUser.following,
-				profileImg: newUser.profileImg,
-				coverImg: newUser.coverImg,
 			});
 		} else {
 			res.status(400).json({ error: "Invalid user data" });
@@ -191,11 +178,14 @@ const onboardingSubmit = async (req, res) => {
 					coverImgUrl = uploadedResponse.secure_url;
 			}
 
+			const salt = await bcrypt.genSalt(10);
+			const hashedPassword = await bcrypt.hash(password, salt);
+
 			// Update user fields
 			user.fullName = fullName;
 			user.username = username;
 			user.email = email;
-			user.password = password; // Ensure password is hashed before saving
+			user.password = hashedPassword; // Ensure password is hashed before saving
 			user.profileImg = profileImgUrl;
 			user.coverImg = coverImgUrl;
 			user.bio = bio;

@@ -71,7 +71,7 @@ const CreatePost = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'
+      className='bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4'
     >
       <div className='flex items-start gap-4'>
         <div className='flex-shrink-0'>
