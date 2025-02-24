@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, Check, User, Briefcase, Settings } from "lucide-react"
 import { cn } from "../../lib/utils"
@@ -9,6 +9,7 @@ import Step2 from "./Step2"
 import Step3 from "./Step3"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
+import { useQueryClient, useMutation } from "@tanstack/react-query"
 
 const steps = [
   {
@@ -29,8 +30,13 @@ const steps = [
 ]
 
 const OnboardingForm = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [step, setStep] = useState(0)
+
+  // Get the existing user data from React Query cache
+  const existingUserData = queryClient.getQueryData(["authUser"])
+
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -52,6 +58,19 @@ const OnboardingForm = () => {
     equipmentOwned: [],
   })
 
+  // Pre-fill form data when component mounts
+  useEffect(() => {
+    if (existingUserData) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: existingUserData.fullName || "",
+        username: existingUserData.username || "",
+        email: existingUserData.email || "",
+        password: existingUserData.password || "",
+      }))
+    }
+  }, [existingUserData])
+
   const updateFormData = (newData) => {
     setFormData((prev) => ({ ...prev, ...newData }))
   }
@@ -64,42 +83,57 @@ const OnboardingForm = () => {
     setStep((prev) => Math.max(prev - 1, 0))
   }
 
+  // Create mutation for onboarding submission
+  const onboardingMutation = useMutation({
+    cacheTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 5,  // 5 minutes
+    retry: 2,
+    retryDelay: 1000,
+    mutationFn: async (data) => {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/onboarding`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to complete onboarding")
+      }
+
+      return response.json()
+    },
+    onSuccess: (data) => {
+      if (!data.username) {
+        throw new Error("Username is missing from the response!")
+      }
+
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries(["authUser"])
+      
+      toast.success("Onboarding completed successfully!")
+      navigate(`/profile/${data.username}`)
+    },
+    onError: (error) => {
+      console.error("Error during onboarding submission:", error)
+      toast.error(error.message || "Onboarding failed")
+    }
+  })
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    
     // Remove empty fields before sending
     const sanitizedData = Object.fromEntries(
       Object.entries(formData).filter(([_, value]) => value !== "" && value !== null)
-    );
+    )
 
-    try {
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/onboarding`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(sanitizedData), // Send as JSON
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to complete onboarding");
-        }
-
-        const data = await response.json();
-
-        if (!data.username) {
-          throw new Error("Username is missing from the response!");
-        }
-      
-        toast.success("Onboarding completed successfully!");
-        navigate(`/profile/${data.username}`);
-    } catch (error) {
-        console.error("Error during onboarding submission:", error);
-        toast.error(error.message || "Onboarding failed");
-    }
-};
+    onboardingMutation.mutate(sanitizedData)
+  }
 
 
   return (
@@ -248,9 +282,14 @@ const OnboardingForm = () => {
                 <button
                   type="button"
                   onClick={step === 2 ? handleSubmit : handleNext}
+                  disabled={onboardingMutation.isLoading}
                   className="px-6 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
                 >
-                  {step === 2 ? "Complete" : "Continue"}
+                  {step === 2 
+                    ? onboardingMutation.isLoading 
+                      ? "Submitting..." 
+                      : "Complete" 
+                    : "Continue"}
                 </button>
               </div>
             </motion.div>

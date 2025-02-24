@@ -161,8 +161,14 @@ const likeUnlikePost = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const posts = await Post.find()
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: "user",
         select: "-password",
@@ -172,11 +178,14 @@ const getAllPosts = async (req, res) => {
         select: "-password",
       });
 
-    if (posts.length === 0) {
-      return res.status(200).json([]);
-    }
+    const totalPosts = await Post.countDocuments();
+    const hasMore = skip + posts.length < totalPosts;
 
-    res.status(200).json(posts);
+    res.status(200).json({
+      posts,
+      hasMore,
+      nextPage: hasMore ? page + 1 : null
+    });
   } catch (error) {
     console.log("Error in getAllPosts controller: ", error);
     res.status(500).json({ error: "Internal server error" });

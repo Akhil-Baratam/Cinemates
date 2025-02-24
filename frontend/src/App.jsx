@@ -20,21 +20,87 @@ import ExploreCollabs from "./pages/collabs/ExploreCollabs";
 import NotificationPage from "./pages/notifications/NotificationPage";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
-// Higher Order Components for Route Protection
-const ProtectedRoute = ({ element }) => {
-  const { authUser, isLoading } = useAuth();
-  if (isLoading) return <LoadingSpinner size="lg" />;
-  return authUser ? element : <Navigate to="/login" />;
+// Layout components to handle different authentication states
+const PublicLayout = ({ children }) => {
+  return <div className="bg-white font-poppins">{children}</div>;
 };
 
-const OnboardingGuard = ({ element }) => {
+const AuthenticatedLayout = ({ children }) => {
+  return (
+    <div className="bg-white font-poppins">
+      <Navbar />
+      {children}
+    </div>
+  );
+};
+
+// Route guards with clearer responsibility separation
+const PublicRoute = ({ element }) => {
+  const { authUser } = useAuth();
+  
+  // Redirect authenticated users to their appropriate landing page
+  if (authUser) {
+    return <Navigate to={authUser.onboardingCompleted ? "/posts" : "/onboarding"} replace />;
+  }
+  
+  return <PublicLayout>{element}</PublicLayout>;
+};
+
+const AuthRoute = ({ element }) => {
   const { authUser, isLoading } = useAuth();
-  if (isLoading) return <LoadingSpinner size="lg" />;
-  return authUser?.onboardingCompleted ? element : <Navigate to="/onboarding" />;
+  
+  if (isLoading) {
+    return <LoadingSpinner size="lg" />;
+  }
+  
+  if (!authUser) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <AuthenticatedLayout>{element}</AuthenticatedLayout>;
+};
+
+const OnboardingRoute = ({ element }) => {
+  const { authUser, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingSpinner size="lg" />;
+  }
+  
+  if (!authUser) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If onboarding is completed, redirect to main content
+  if (authUser.onboardingCompleted) {
+    return <Navigate to="/posts" replace />;
+  }
+  
+  // Render onboarding without the main layout
+  return <PublicLayout>{element}</PublicLayout>;
+};
+
+const CompletedOnboardingRoute = ({ element }) => {
+  const { authUser, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingSpinner size="lg" />;
+  }
+  
+  if (!authUser) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Redirect to onboarding if not completed
+  if (!authUser.onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  
+  return <AuthenticatedLayout>{element}</AuthenticatedLayout>;
 };
 
 function App() {
-  const { authUser, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -45,33 +111,32 @@ function App() {
   }
 
   return (
-    <div className="bg-white font-poppins">
-      {/* Show Navbar only for authenticated users (except onboarding) */}
-      {authUser && !window.location.pathname.includes('/onboarding') && <Navbar />}
-
+    <>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={authUser ? <Navigate to="/posts" /> : <HomePage />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to={authUser?.onboardingCompleted ? "/posts" : "/onboarding"} />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to={authUser?.onboardingCompleted ? "/posts" : "/onboarding"} />} />
+        {/* Public routes */}
+        <Route path="/" element={<PublicRoute element={<HomePage />} />} />
+        <Route path="/signup" element={<PublicRoute element={<SignUpPage />} />} />
+        <Route path="/login" element={<PublicRoute element={<LoginPage />} />} />
 
-        {/* Protected Routes (Accessible only if logged in) */}
-        <Route path="/onboarding" element={authUser ? <OnboardingPage /> : <Navigate to="/login" />} />
-        <Route path="/posts" element={<OnboardingGuard element={<CommunityPosts />} />} />
-        <Route path="/profile/:username" element={<OnboardingGuard element={<ProfilePage />} />} />
-        <Route path="/chat/:id" element={<OnboardingGuard element={<Chat />} />} />
-        <Route path="/mates" element={<OnboardingGuard element={<DiscoverMates />} />} />
-        <Route path="/collabs" element={<OnboardingGuard element={<ExploreCollabs />} />} />
-        <Route path="/ads/explore" element={<OnboardingGuard element={<ExploreAds />} />} />
-        <Route path="/contact" element={<OnboardingGuard element={<Contact />} />} />
-        <Route path="/notifications" element={<OnboardingGuard element={<NotificationPage />} />} />
+        {/* Onboarding route */}
+        <Route path="/onboarding" element={<OnboardingRoute element={<OnboardingPage />} />} />
 
-        {/* Catch-all Route */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Protected routes requiring completed onboarding */}
+        <Route path="/posts" element={<CompletedOnboardingRoute element={<CommunityPosts />} />} />
+        <Route path="/profile/:username" element={<CompletedOnboardingRoute element={<ProfilePage />} />} />
+        <Route path="/chat/:id" element={<CompletedOnboardingRoute element={<Chat />} />} />
+        <Route path="/mates" element={<CompletedOnboardingRoute element={<DiscoverMates />} />} />
+        <Route path="/collabs" element={<CompletedOnboardingRoute element={<ExploreCollabs />} />} />
+        <Route path="/ads/explore" element={<CompletedOnboardingRoute element={<ExploreAds />} />} />
+        <Route path="/contact" element={<CompletedOnboardingRoute element={<Contact />} />} />
+        <Route path="/notifications" element={<CompletedOnboardingRoute element={<NotificationPage />} />} />
+
+        {/* Catch-all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       <Toaster />
-    </div>
+    </>
   );
 }
 
