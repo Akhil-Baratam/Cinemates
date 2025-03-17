@@ -6,6 +6,12 @@ import { IoCloseSharp } from "react-icons/io5";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../../components/ui/avatar";
+
 const CreatePost = () => {
   const [text, setText] = useState("");
   const [imgs, setImgs] = useState([]);
@@ -75,11 +81,15 @@ const CreatePost = () => {
     >
       <div className='flex items-start gap-4'>
         <div className='flex-shrink-0'>
-          <img 
-            className="w-10 h-10 rounded-full object-cover border-2 border-primary"
-            src={authUser.profileImg || "/avatar-placeholder.png"}
-            alt={authUser.fullName}
-          />
+          <Avatar className="h-10 w-10 border border-primary">
+            <AvatarImage
+              src={authUser.profileImg} 
+              alt={authUser.fullName}
+            />
+            <AvatarFallback>
+              {authUser.fullName?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
         <form className='flex-grow' onSubmit={handleSubmit}>
           <textarea

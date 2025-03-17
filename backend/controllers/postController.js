@@ -22,7 +22,12 @@ const createPost = async (req, res) => {
       for (const img of imgs) {
         const uploadedResponse = await cloudinary.uploader.upload(img, {
           folder: "posts",
-        });
+          transformation: [
+              { width: 500, crop: "scale" },
+              { quality: 'auto:best' },
+              { fetch_format: "auto" }
+          ]
+      });
         imgUrls.push(uploadedResponse.secure_url);
       }
     }

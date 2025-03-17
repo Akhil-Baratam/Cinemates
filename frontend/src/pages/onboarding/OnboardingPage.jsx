@@ -116,7 +116,7 @@ const OnboardingForm = () => {
       queryClient.invalidateQueries(["authUser"])
       
       toast.success("Onboarding completed successfully!")
-      navigate(`/profile/${data.username}`)
+      navigate(`/profile/${data.username}`) 
     },
     onError: (error) => {
       console.error("Error during onboarding submission:", error)

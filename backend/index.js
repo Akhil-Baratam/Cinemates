@@ -5,6 +5,7 @@ const connectMongoDB = require("./db/connectMongoDB");
 const cookieParser = require('cookie-parser');
 const path = require('path');
 var cloudinary = require('cloudinary').v2;
+const bodyParser = require('body-parser');
 
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 console.log(process.env.PORT);
@@ -31,7 +32,7 @@ app.use(cors({
 app.set('trust proxy', 1);
 app.use(cookieParser());
 
-app.use(express.json({ limit: "10mb" }));
+app.use(bodyParser.json({ limit: '20mb' }));
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
 

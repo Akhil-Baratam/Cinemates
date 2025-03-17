@@ -152,7 +152,7 @@ const Navbar = () => {
                 <DropdownMenuTrigger className=" flex justify-center items-center border-none rounded-full outline-none w-10">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={authUser.profileImg}
+                      src={authUser.profileImg} 
                       alt={authUser.fullName}
                     />
                     <AvatarFallback>

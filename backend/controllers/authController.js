@@ -164,7 +164,17 @@ const onboardingSubmit = async (req, res) => {
 					if (user.profileImg) {
 							await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
 					}
-					const uploadedResponse = await cloudinary.uploader.upload(profileImg);
+					const uploadedResponse = await cloudinary.uploader.upload(profileImg,{
+						folder: "profileimg",
+						height: 200,
+						width: 200,
+						crop: "fill",
+						transformation: [
+								{ width: 500, crop: "scale" },
+								{ quality: 'auto:best' },
+								{ fetch_format: "auto" }
+						]
+				  }); 
 					profileImgUrl = uploadedResponse.secure_url;
 			}
 
@@ -174,7 +184,17 @@ const onboardingSubmit = async (req, res) => {
 					if (user.coverImg) {
 							await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
 					}
-					const uploadedResponse = await cloudinary.uploader.upload(coverImg);
+					const uploadedResponse = await cloudinary.uploader.upload(coverImg,{
+						folder: "coverimg",
+						height: 200,
+						width: 200,
+						crop: "fill",
+						transformation: [
+								{ width: 500, crop: "scale" },
+								{ quality: 'auto:best' },
+								{ fetch_format: "auto" }
+						]
+				  }); 
 					coverImgUrl = uploadedResponse.secure_url;
 			}
 
