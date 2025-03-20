@@ -73,7 +73,6 @@ const Navbar = () => {
   const collabLinks = useMemo(
     () => [
       { name: "Explore Collabs", link: "/collabs" },
-      { name: "Post a collab", link: "/collabs/create" },
       { name: "My Collabs", link: `/collabs/user/${authUser?.username}` },
     ],
     [authUser?.username]

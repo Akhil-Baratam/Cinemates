@@ -157,7 +157,7 @@ const likeUnlikePost = async (req, res) => {
 
 			const updatedLikes = post.likes;
 			res.status(200).json(updatedLikes);
-		}
+		} 
   } catch (error) {
     console.log("Error in likeUnlikePost controller: ", error);
     res.status(500).json({ error: "Internal server error" });

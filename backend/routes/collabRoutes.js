@@ -13,7 +13,7 @@ router.get("/", protectRoute, getAllCollabs);
 // router.get("/interested/:id", protectRoute, getInterestedCollabs);
 router.get("/:username", protectRoute, getUserCollabs);
  
-
+ 
 module.exports = router;
 
 

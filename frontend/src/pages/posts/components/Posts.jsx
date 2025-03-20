@@ -23,7 +23,7 @@ const Posts = ({ feedType, username, userId }) => {
     }
   };
 
-  const {
+  const { 
     data,
     fetchNextPage,
     hasNextPage,

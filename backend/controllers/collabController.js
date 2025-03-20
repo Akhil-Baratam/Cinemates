@@ -18,7 +18,7 @@ const createCollab = async (req, res) => {
     // Validate required fields
     if (!title || !description || !deadline) {
       return res.status(400).json({ error: "Title, description, and deadline are required" });
-    }
+    } 
 
     const newCollab = new Collab({
       user: userId,
@@ -97,19 +97,32 @@ const deleteCollab = async (req, res) => {
 }
 
 const getAllCollabs = async (req, res) => {
-	try {
-		const collabs = await Collab.find()
-			.sort({ createdAt: -1 })
-			.populate({
-				path: "user",
-				select: "-password",
-			});
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-		res.status(200).json(collabs);
-	} catch (error) {
-		console.log("Error in getAllCollabs controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
+    const collabs = await Collab.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "user",
+        select: "-password",
+      });
+
+    const totalCollabs = await Collab.countDocuments();
+    const hasMore = skip + collabs.length < totalCollabs;
+
+    res.status(200).json({
+      collabs,
+      hasMore,
+      nextPage: hasMore ? page + 1 : null,
+    });
+  } catch (error) {
+    console.log("Error in getAllCollabs controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 const getUserCollabs = async (req, res ) => {

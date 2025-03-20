@@ -32,7 +32,7 @@ const CommunityPosts = () => {
               <SelectItem value="all">All Posts</SelectItem>
               <SelectItem value="following">Following</SelectItem>
               <SelectItem value="relevance">Relevance</SelectItem>
-            </SelectContent>
+            </SelectContent> 
           </Select>
         </div>
       </CardHeader>

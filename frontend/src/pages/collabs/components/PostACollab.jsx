@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
@@ -17,8 +17,12 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function PostACollab({ onSubmit }) {
+  const queryClient = useQueryClient();
+  const titleRef = useRef(null); // Reference for first input
+
   const [formData, setFormData] = useState({
     title: "",
     projectType: "Short Film",
@@ -33,6 +37,13 @@ export default function PostACollab({ onSubmit }) {
     deadline: "",
     referenceLinks: [],
   });
+
+  // Automatically focus the title input when the modal opens
+  useEffect(() => {
+    if (titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,11 +74,14 @@ export default function PostACollab({ onSubmit }) {
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     const base64Files = await Promise.all(
-      files.map((file) => new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      }))
+      files.map(
+        (file) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          })
+      )
     );
     setFormData((prevData) => ({
       ...prevData,
@@ -77,19 +91,30 @@ export default function PostACollab({ onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate required fields
+
     if (!formData.title || !formData.description || !formData.deadline) {
       return alert("Title, description, and deadline are required.");
     }
 
-    // Prepare request data
     const requestData = {
       ...formData,
       user: "userId_placeholder", // replace with actual user ID from context or auth
       imgs: formData.imgs,
-      location: formData.location, // Ensure this is a string as per your model
+      location: formData.location,
     };
+
+    queryClient.setQueryData(["collabs"], (oldData) => ({
+      ...oldData,
+      pages: [
+        {
+          ...oldData.pages[0],
+          collabs: [
+            { _id: Date.now(), ...requestData },
+            ...oldData.pages[0].collabs,
+          ],
+        },
+      ],
+    }));
 
     try {
       const response = await fetch("api/collabs/create", {
@@ -102,7 +127,6 @@ export default function PostACollab({ onSubmit }) {
         throw new Error("Failed to create collaboration.");
       }
 
-      const data = await response.json();
       alert("Collaboration posted successfully!");
       setFormData({
         title: "",
@@ -118,7 +142,7 @@ export default function PostACollab({ onSubmit }) {
         deadline: "",
         referenceLinks: [],
       });
-      onSubmit();
+      onSubmit(); // Call onSubmit after successful submission
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("Error creating collaboration.");
@@ -137,6 +161,7 @@ export default function PostACollab({ onSubmit }) {
             <Input
               id="title"
               name="title"
+              ref={titleRef} // Focus will move here automatically
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter project title"
@@ -157,8 +182,19 @@ export default function PostACollab({ onSubmit }) {
                 <SelectValue placeholder="Select Project Type" />
               </SelectTrigger>
               <SelectContent>
-                {["Short Film", "Feature Film", "Documentary", "Music Video", "Commercial", "Youtube Video", "Reels or Shorts", "Other"].map((type) => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                {[
+                  "Short Film",
+                  "Feature Film",
+                  "Documentary",
+                  "Music Video",
+                  "Commercial",
+                  "Youtube Video",
+                  "Reels or Shorts",
+                  "Other",
+                ].map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
