@@ -2,33 +2,27 @@
 
 import React, { useState } from "react"
 import { motion } from "framer-motion"
-import { Dialog, DialogTitle, DialogDescription, DialogContent, DialogTrigger } from "../../components/ui/dialog"
-import { Button } from "../../components/ui/button"
-import PostACollab from "./components/PostACollab"
+import PostACollab from "./components/PostCollab"
 import Collabs from "./components/Collabs"
 import CollabFilters from "./components/CollabFilters"
+import { useQuery } from "@tanstack/react-query"
 
 const ExploreCollabs = () => {
-  const [isOpen, setIsOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState({
     projectType: "all",
     genre: "all",
     location: "all"
   })
 
-  const handleDialogClose = () => {
-    setIsOpen(false)
-  }
-
-  const handleDialogOpen = () => {
-    setIsOpen(true)
-  }
-
   const handleFilterChange = (filterType, value) => {
     setActiveFilters(prev => ({
       ...prev,
       [filterType]: value
     }))
+  }
+
+  const handleCollabPosted = () => {
+    console.log("Collaboration posted successfully")
   }
 
   return (
@@ -42,23 +36,7 @@ const ExploreCollabs = () => {
       <div className="md:hidden space-y-6">
         <div className="flex flex-col space-y-4">
           <h1 className="text-2xl font-bold">Collaboration Posts</h1>
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="w-full bg-primary text-white hover:bg-primary/90"
-                onClick={handleDialogOpen}
-              >
-                Post A Collab
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogTitle>Create Collaboration Post</DialogTitle>
-              <DialogDescription>
-                Share your project idea and find collaborators
-              </DialogDescription>
-              <PostACollab onSubmit={handleDialogClose} />
-            </DialogContent>
-          </Dialog>
+          <PostACollab onSubmit={handleCollabPosted} />
         </div>
         
         <CollabFilters 
@@ -70,26 +48,10 @@ const ExploreCollabs = () => {
       </div>
 
       {/* Desktop Layout - 3 Column */}
-      <div className="hidden md:grid md:grid-cols-4 md:gap-6">
+      <div className="hidden md:grid md:gap-6 md:grid-cols-4">
         {/* Left Column - 1/4 width */}
         <div className="col-span-1 space-y-6">
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="w-full bg-primary text-white hover:bg-primary/90"
-                onClick={handleDialogOpen}
-              >
-                Post A Collab
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto" >
-              <DialogTitle>Create Collaboration Post</DialogTitle>
-              <DialogDescription>
-                Share your project idea and find collaborators
-              </DialogDescription>
-              <PostACollab onSubmit={handleDialogClose} />
-            </DialogContent>
-          </Dialog>
+          <PostACollab onSubmit={handleCollabPosted} />
           
           <CollabFilters 
             activeFilters={activeFilters} 

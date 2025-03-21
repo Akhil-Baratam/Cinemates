@@ -22,7 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function PostACollab({ onSubmit }) {
   const queryClient = useQueryClient();
   const titleRef = useRef(null); // Reference for first input
-
+  const [isOpen, setIsOpen] = useState(false); // State for managing open/close
   const [formData, setFormData] = useState({
     title: "",
     projectType: "Short Film",
@@ -38,12 +38,11 @@ export default function PostACollab({ onSubmit }) {
     referenceLinks: [],
   });
 
-  // Automatically focus the title input when the modal opens
   useEffect(() => {
-    if (titleRef.current) {
+    if (isOpen && titleRef.current) {
       titleRef.current.focus();
     }
-  }, []);
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
