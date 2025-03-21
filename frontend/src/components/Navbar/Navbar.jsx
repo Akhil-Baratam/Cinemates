@@ -100,9 +100,9 @@ const Navbar = () => {
 
   return (
     <ErrorBoundary fallback={<div>Something went wrong</div>}>
-      <nav className="relative bg-white z-40 shadow-lg">
-        <div className=" fixed top-0 left-0 right-0 z-50 pt-2 bg-white bg-opacity-90 backdrop-blur-sm border-b-2 border-[#bdbaba]">
-          <div className="flex items-center justify-between h-10 mx-10">
+      <nav className="relative bg-white z-50 shadow-lg">
+        <div className=" fixed top-0 left-0 right-0 bg-white bg-opacity-90 backdrop-blur-sm border-b-2 border-[#bdbaba]">
+          <div className="flex items-center justify-between h-12 mx-10">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0">
                 <img src={logo} alt="Logo" className="w-36 h-auto" />

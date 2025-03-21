@@ -8,12 +8,12 @@ import { Label } from "../../../components/ui/label"
 import { Textarea } from "../../../components/ui/textarea"
 import { Checkbox } from "../../../components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "../../../components/ui/sheet"
+import { X, Upload, Calendar, DollarSign, MapPin, Film, Tag, Users } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 
 export default function PostACollab({ onSubmit }) {
   const queryClient = useQueryClient()
-  const titleRef = useRef(null)
+  const modalRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
@@ -29,6 +29,52 @@ export default function PostACollab({ onSubmit }) {
     deadline: "",
     referenceLinks: [],
   })
+
+  // Handle click outside to close - modified to prevent closing when clicking on select elements
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if the click is on a select element or its children
+      const isSelectElement =
+        event.target.closest('[role="combobox"]') ||
+        event.target.closest('[role="listbox"]') ||
+        event.target.closest("[data-radix-select-viewport]")
+
+      if (modalRef.current && !modalRef.current.contains(event.target) && isOpen && !isSelectElement) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isOpen])
+
+  // Handle escape key to close
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener("keydown", handleEscKey)
+    return () => {
+      document.removeEventListener("keydown", handleEscKey)
+    }
+  }, [isOpen])
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "auto"
+    }
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [isOpen])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -70,6 +116,11 @@ export default function PostACollab({ onSubmit }) {
       ...prevData,
       imgs: base64Files,
     }))
+  }
+
+  // Prevent event propagation for select components
+  const handleSelectClick = (e) => {
+    e.stopPropagation()
   }
 
   const handleSubmit = async (e) => {
@@ -114,6 +165,9 @@ export default function PostACollab({ onSubmit }) {
       })
       setIsOpen(false)
       onSubmit()
+
+      // Invalidate and refetch collabs query
+      queryClient.invalidateQueries(["collabs"])
     } catch (error) {
       console.error("Error submitting form:", error)
       alert("Error creating collaboration.")
@@ -121,216 +175,383 @@ export default function PostACollab({ onSubmit }) {
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button className="rounded-full">Post a Collab</Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-full sm:w-[540px] p-0 overflow-y-auto">
-        <SheetHeader className="p-6 border-b">
-          <SheetTitle className="text-2xl font-bold">Create Collaboration Request</SheetTitle>
-          <SheetDescription>
-            Fill out the form below to create a new collaboration request.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter project title"
-                required
-              />
-            </div>
+    <>
+      <Button
+        onClick={() => setIsOpen(true)}
+        className="rounded-full bg-gradient-to-r from-gray-900 to-slate-900 hover:from-gray-800 hover:to-slate-800 text-white font-medium"
+      >
+        Post a Collab
+      </Button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="projectType">Project Type</Label>
-                <Select
-                  name="projectType"
-                  value={formData.projectType}
-                  onValueChange={(value) => setFormData({ ...formData, projectType: value })}
-                  aria-label="Select project type"
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black z-40"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Modal */}
+            <motion.div
+              ref={modalRef}
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed top-6 left-0 h-[94%] z-30 w-full sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] max-w-4xl bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"
+              style={{ zIndex: 50 }}
+            >
+              <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b dark:border-gray-800 p-4 flex justify-between items-center">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  Create Collaboration
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Project Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      "Short Film",
-                      "Feature Film",
-                      "Documentary",
-                      "Music Video",
-                      "Commercial",
-                      "Youtube Video",
-                      "Reels or Shorts",
-                      "Other",
-                    ].map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="timePeriod">Time Period</Label>
-                <Select
-                  name="timePeriod"
-                  value={formData.timePeriod}
-                  onValueChange={(value) => setFormData({ ...formData, timePeriod: value })}
-                  aria-label="Select time period"
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Time Period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["Less than a week", "Less than a month", "Less than 3 months", "More than 3 months"].map(
-                      (period) => (
-                        <SelectItem key={period} value={period}>
-                          {period}
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Genres</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Documentary", "Other"].map(
-                  (genre) => (
-                    <div key={genre} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={genre}
-                        checked={formData.genres.includes(genre)}
-                        onCheckedChange={(checked) => handleGenresChange(genre, checked)}
-                      />
-                      <Label htmlFor={genre}>{genre}</Label>
-                    </div>
-                  ),
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Enter project description"
-                required
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isPaid"
-                checked={formData.isPaid}
-                onCheckedChange={(checked) => setFormData({ ...formData, isPaid: checked })}
-              />
-              <Label htmlFor="isPaid">Is this a paid project?</Label>
-            </div>
-
-            {formData.isPaid && (
-              <div className="space-y-2">
-                <Label htmlFor="pay">Pay Amount</Label>
-                <Input
-                  id="pay"
-                  name="pay"
-                  type="number"
-                  value={formData.pay}
-                  onChange={handleChange}
-                  placeholder="Enter pay amount"
-                  required
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="Enter location"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Required Craftsmen</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  "Video Editor",
-                  "Audio Mixer",
-                  "Cinematographer",
-                  "Scriptwriter",
-                  "Voice Artist",
-                  "Actor",
-                  "Director",
-                  "Producer",
-                  "Other",
-                ].map((craft) => (
-                  <div key={craft} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={craft}
-                      checked={formData.requiredCraftsmen.includes(craft)}
-                      onCheckedChange={(checked) => handleCraftsmenChange(craft, checked)}
+              <div className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Title Section */}
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-lg font-medium">
+                      Project Title
+                    </Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder="Enter a catchy title for your project"
+                      className="text-lg"
+                      required
                     />
-                    <Label htmlFor={craft}>{craft}</Label>
                   </div>
-                ))}
+
+                  {/* Two Column Layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Film className="h-5 w-5 text-purple-500" />
+                          <h3 className="font-semibold text-lg">Project Details</h3>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="projectType">Project Type</Label>
+                            <div onClick={handleSelectClick}>
+                              <Select
+                                name="projectType"
+                                value={formData.projectType}
+                                onValueChange={(value) => setFormData({ ...formData, projectType: value })}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select Project Type" />
+                                </SelectTrigger>
+                                <SelectContent position="popper" className="z-[100]">
+                                  {[
+                                    "Short Film",
+                                    "Feature Film",
+                                    "Documentary",
+                                    "Music Video",
+                                    "Commercial",
+                                    "Youtube Video",
+                                    "Reels or Shorts",
+                                    "Other",
+                                  ].map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                      {type}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="timePeriod">Time Period</Label>
+                            <div onClick={handleSelectClick}>
+                              <Select
+                                name="timePeriod"
+                                value={formData.timePeriod}
+                                onValueChange={(value) => setFormData({ ...formData, timePeriod: value })}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select Time Period" />
+                                </SelectTrigger>
+                                <SelectContent position="popper" className="z-[100]">
+                                  {[
+                                    "Less than a week",
+                                    "Less than a month",
+                                    "Less than 3 months",
+                                    "More than 3 months",
+                                  ].map((period) => (
+                                    <SelectItem key={period} value={period}>
+                                      {period}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="deadline" className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-purple-500" />
+                              Deadline
+                            </Label>
+                            <Input
+                              id="deadline"
+                              name="deadline"
+                              type="date"
+                              value={formData.deadline}
+                              onChange={handleChange}
+                              required
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-5 w-5 text-indigo-500" />
+                          <h3 className="font-semibold text-lg">Genres</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Documentary", "Other"].map(
+                            (genre) => (
+                              <div key={genre} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={genre}
+                                  checked={formData.genres.includes(genre)}
+                                  onCheckedChange={(checked) => handleGenresChange(genre, checked)}
+                                  className="data-[state=checked]:bg-indigo-600"
+                                />
+                                <Label htmlFor={genre} className="text-sm">
+                                  {genre}
+                                </Label>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-5 w-5 text-purple-500" />
+                          <h3 className="font-semibold text-lg">Location</h3>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="location">Where will this project take place?</Label>
+                          <Input
+                            id="location"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleChange}
+                            placeholder="City, Country or Remote"
+                            required
+                          />
+                        </div>
+                      </motion.div>
+                    </div>
+
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <Label htmlFor="description" className="font-semibold text-lg">
+                          Project Description
+                        </Label>
+                        <Textarea
+                          id="description"
+                          name="description"
+                          value={formData.description}
+                          onChange={handleChange}
+                          placeholder="Describe your project in detail. What's the concept? What are you looking for?"
+                          className="min-h-[150px] resize-none"
+                          required
+                        />
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-5 w-5 text-green-500" />
+                          <h3 className="font-semibold text-lg">Compensation</h3>
+                        </div>
+
+                        <div className="flex items-center space-x-2 mb-4">
+                          <Checkbox
+                            id="isPaid"
+                            checked={formData.isPaid}
+                            onCheckedChange={(checked) => setFormData({ ...formData, isPaid: checked })}
+                            className="data-[state=checked]:bg-green-600"
+                          />
+                          <Label htmlFor="isPaid">This is a paid project</Label>
+                        </div>
+
+                        {formData.isPaid && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="space-y-2"
+                          >
+                            <Label htmlFor="pay">Pay Amount</Label>
+                            <Input
+                              id="pay"
+                              name="pay"
+                              type="number"
+                              value={formData.pay}
+                              onChange={handleChange}
+                              placeholder="Enter pay amount"
+                              required={formData.isPaid}
+                            />
+                          </motion.div>
+                        )}
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Users className="h-5 w-5 text-indigo-500" />
+                          <h3 className="font-semibold text-lg">Required Craftsmen</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            "Video Editor",
+                            "Audio Mixer",
+                            "Cinematographer",
+                            "Scriptwriter",
+                            "Voice Artist",
+                            "Actor",
+                            "Director",
+                            "Producer",
+                            "Other",
+                          ].map((craft) => (
+                            <div key={craft} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={craft}
+                                checked={formData.requiredCraftsmen.includes(craft)}
+                                onCheckedChange={(checked) => handleCraftsmenChange(craft, checked)}
+                                className="data-[state=checked]:bg-indigo-600"
+                              />
+                              <Label htmlFor={craft} className="text-sm">
+                                {craft}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Upload className="h-5 w-5 text-purple-500" />
+                          <h3 className="font-semibold text-lg">Media & References</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="imgs">Upload Images</Label>
+                            <Input
+                              id="imgs"
+                              name="imgs"
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handleFileChange}
+                              className="cursor-pointer"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="referenceLinks">Reference Links</Label>
+                            <Textarea
+                              id="referenceLinks"
+                              name="referenceLinks"
+                              value={formData.referenceLinks.join("\n")}
+                              onChange={(e) => setFormData({ ...formData, referenceLinks: e.target.value.split("\n") })}
+                              placeholder="Enter reference links, one per line"
+                              className="resize-none"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex justify-end space-x-3 pt-4 sticky bottom-0 bg-white dark:bg-gray-900 p-4 border-t dark:border-gray-800 -mx-6 -mb-6 rounded-br-2xl"
+                  >
+                    <Button variant="outline" onClick={() => setIsOpen(false)} type="button" className="rounded-full">
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                    >
+                      Post Collaboration
+                    </Button>
+                  </motion.div>
+                </form>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="deadline">Deadline</Label>
-              <Input
-                id="deadline"
-                name="deadline"
-                type="date"
-                value={formData.deadline}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="imgs">Upload Images</Label>
-              <Input id="imgs" name="imgs" type="file" accept="image/*" multiple onChange={handleFileChange} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="referenceLinks">Reference Links</Label>
-              <Textarea
-                id="referenceLinks"
-                name="referenceLinks"
-                value={formData.referenceLinks.join("\n")}
-                onChange={(e) => setFormData({ ...formData, referenceLinks: e.target.value.split("\n") })}
-                placeholder="Enter reference links, one per line"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" onClick={() => setIsOpen(false)} type="button">
-                Cancel
-              </Button>
-              <Button type="submit">Post Collaboration</Button>
-            </div>
-          </form>
-        </div>
-      </SheetContent>
-    </Sheet>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
