@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
+import { useDebounce } from "../../hooks/useDebounce"
 
 const Step1 = ({ formData, updateFormData }) => {
 
@@ -9,6 +10,58 @@ const Step1 = ({ formData, updateFormData }) => {
   const [profileImgPreview, setProfileImgPreview] = useState(null);
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
+
+  const [usernameStatus, setUsernameStatus] = useState(null);
+  const [usernameMessage, setUsernameMessage] = useState("");
+
+  const debouncedUsername = useDebounce(formData.username, 500);
+
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!debouncedUsername || debouncedUsername.length < 3) {
+        setUsernameStatus(null);
+        setUsernameMessage("");
+        return;
+      }
+      
+      setUsernameStatus('checking');
+      setUsernameMessage("Checking availability...");
+      
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BASE_URL}/api/users/check-username?username=${debouncedUsername}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Accept": "application/json",
+            }
+          }
+        );
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          if (data.available) {
+            setUsernameStatus('available');
+            setUsernameMessage("Username is available!");
+          } else {
+            setUsernameStatus('taken');
+            setUsernameMessage("Username is already taken.");
+          }
+        } else {
+          setUsernameStatus('error');
+          setUsernameMessage("Error checking username.");
+        }
+      } catch (error) {
+        setUsernameStatus('error');
+        setUsernameMessage("Error checking username.");
+        console.error("Username check error:", error);
+      }
+    };
+    
+    checkUsername();
+  }, [debouncedUsername]);
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -50,7 +103,27 @@ const Step1 = ({ formData, updateFormData }) => {
         <Label htmlFor="username" className="text-sm font-medium">
           Username
         </Label>
-        <Input id="username" name="username" value={formData.username} onChange={handleChange} required />
+        <Input 
+          id="username" 
+          name="username" 
+          value={formData.username} 
+          onChange={handleChange} 
+          required 
+          className={usernameStatus === 'taken' ? 'border-red-500' : (usernameStatus === 'available' ? 'border-green-500' : '')}
+        />
+        {usernameStatus && (
+          <p 
+            className={`text-sm mt-1 ${
+              usernameStatus === 'available' 
+                ? 'text-green-500' 
+                : usernameStatus === 'taken' 
+                  ? 'text-red-500' 
+                  : 'text-gray-500'
+            }`}
+          >
+            {usernameMessage}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">

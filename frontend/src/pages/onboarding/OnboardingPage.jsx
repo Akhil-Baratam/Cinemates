@@ -66,7 +66,7 @@ const OnboardingForm = () => {
         fullName: existingUserData.fullName || "",
         username: existingUserData.username || "",
         email: existingUserData.email || "",
-        password: existingUserData.password || "",
+        password: sessionStorage.getItem('tempPassword') || "",
       }))
     }
   }, [existingUserData])
@@ -133,6 +133,9 @@ const OnboardingForm = () => {
     )
 
     onboardingMutation.mutate(sanitizedData)
+    
+    // Clear the temporary password after submission
+    sessionStorage.removeItem('tempPassword');
   }
 
 

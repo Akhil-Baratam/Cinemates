@@ -30,7 +30,7 @@ const ExploreCollabs = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full mx-auto pt-16"
+      className="w-full pt-16"
     >
       {/* Mobile Layout - Single Column */}
       <div className="md:hidden space-y-6">
@@ -48,9 +48,9 @@ const ExploreCollabs = () => {
       </div>
 
       {/* Desktop Layout - 3 Column */}
-      <div className="hidden md:grid md:gap-6 md:grid-cols-4">
+      <div className="hidden md:flex md:gap-6 md:justify-between">
         {/* Left Column - 1/4 width */}
-        <div className="col-span-1 space-y-6">
+        <div className="w-1/4 space-y-6">
           <PostACollab onSubmit={handleCollabPosted} />
           
           <CollabFilters 
@@ -60,12 +60,12 @@ const ExploreCollabs = () => {
         </div>
         
         {/* Middle Column - 2/4 width */}
-        <div className="col-span-2">
+        <div className="w-2/4  ">
           <Collabs filters={activeFilters} />
         </div>
         
         {/* Right Column - 1/4 width */}
-        <div className="col-span-1">
+        <div className="w-1/4">
           <h2 className="text-xl font-bold mb-4">My Collabs</h2>
           {/* Implementation will be done later */}
         </div>

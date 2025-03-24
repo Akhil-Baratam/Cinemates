@@ -15,6 +15,8 @@ const SignUpPage = () => {
     email: "",
     password: "",
   });
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [passwordMatch, setPasswordMatch] = useState(null);
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -75,11 +77,33 @@ const SignUpPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault(); //page wont reload
+    
+    // Validate passwords match before submission
+    if (formData.password !== passwordConfirmation) {
+      toast.error("Passwords don't match!");
+      return;
+    }
+    
+    // Temporarily store password for onboarding form
+    sessionStorage.setItem('tempPassword', formData.password);
+    
     mutate(formData);
   };
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    
+    // If password field is being changed, check if it matches confirmation
+    if (e.target.name === "password") {
+      if (passwordConfirmation) {
+        setPasswordMatch(e.target.value === passwordConfirmation);
+      }
+    }
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    setPasswordConfirmation(e.target.value);
+    setPasswordMatch(formData.password === e.target.value);
   };
 
   return (
@@ -142,9 +166,28 @@ const SignUpPage = () => {
               />
             </div>
           </div>
+          <div className="flex flex-col mb-4">
+            <div className="flex items-center border border-zinc-500 rounded-lg p-2">
+              <MdPassword className="text-gray-400 mr-2" />
+              <input
+                type="password"
+                className="w-full p-1 text-gray-700 focus:outline-none"
+                placeholder="Confirm Password"
+                name="passwordConfirmation"
+                onChange={handleConfirmPasswordChange}
+                value={passwordConfirmation}
+              />
+            </div>
+            {passwordConfirmation && (
+              <p className={`text-sm mt-1 ${passwordMatch ? 'text-green-500' : 'text-red-500'}`}>
+                {passwordMatch ? 'Passwords match!' : 'Passwords do not match'}
+              </p>
+            )}
+          </div>
           <button
             type="submit"
             className="bg-zinc-900 hover:bg-zinc-600 hover:text-black text-white font-bold py-2 px-4 rounded-lg border border-zinc-900"
+            disabled={isPending || (passwordConfirmation && !passwordMatch)}
           >
             {isPending ? "Loading..." : "Sign up"}
           </button>

@@ -5,7 +5,20 @@ var cloudinary = require("cloudinary").v2;
 
 const createAd = async (req, res) => {
   try {
-    const { description, imgs, price, address, bought_on } = req.body;
+    const { 
+      description, 
+      imgs, 
+      price, 
+      address, 
+      bought_on, 
+      productName, 
+      category, 
+      subcategory, 
+      isNegotiable, 
+      location, 
+      tags, 
+      warranty 
+    } = req.body;
     const userId = req.user._id.toString();
 
     // Validate that all required fields are provided
@@ -13,20 +26,20 @@ const createAd = async (req, res) => {
       return res.status(400).json({ error: "Description is required" });
     }
 
-    // if (!imgs || imgs.length === 0) {
-    //     return res.status(400).json({ error: "At least one image is required" });
-    // }
-
     if (!price) {
       return res.status(400).json({ error: "Price is required" });
     }
 
-    if (!address) {
-      return res.status(400).json({ error: "Address is required" });
+    if (!location) {
+      return res.status(400).json({ error: "Location is required" });
     }
 
     if (!bought_on) {
       return res.status(400).json({ error: "Bought on date is required" });
+    }
+
+    if (!productName) {
+      return res.status(400).json({ error: "Product name is required" });
     }
 
     const user = await User.findById(userId);
@@ -36,7 +49,7 @@ const createAd = async (req, res) => {
 
     let imgUrls = [];
     console.log("Uploading images to Cloudinary...");
-    if (imgs) {
+    if (imgs && imgs.length > 0) {
       for (const img of imgs) {
         try {
           const uploadedResponse = await cloudinary.uploader.upload(img, {
@@ -53,11 +66,18 @@ const createAd = async (req, res) => {
 
     const newAd = new Ad({
       user: userId,
+      productName,
+      category,
+      subcategory,
       description,
       imgs: imgUrls,
       price,
-      address,
+      location,
       bought_on,
+      isNegotiable: isNegotiable || false,
+      isSold: false,
+      tags,
+      warranty: warranty || false
     });
 
     await newAd.save();
@@ -147,29 +167,35 @@ const interestedAd = async (req, res) => {
 			return res.status(404).json({ error: "Ad not found" });
 		}
 
-		// Check if the user has already liked the ad
+		// Check if the user has already expressed interest in the ad
 		const userInterestedAd = ad.interests.includes(userId);
 
 		if (userInterestedAd) {
-			// Unlike the ad
+			// Remove interest
 			await Ad.updateOne({ _id: adId }, { $pull: { interests: userId } });
 			await User.updateOne({ _id: userId }, { $pull: { interestedAds: adId } });
 
-            const updatedInterests = ad.interests.filter((id) => id.toString() !== userId.toString());
+			const updatedInterests = ad.interests.filter((id) => id.toString() !== userId.toString());
 			res.status(200).json(updatedInterests);
 		} else {
-			// Like the ad
+			// Add interest
 			ad.interests.push(userId);
-            await User.updateOne({ _id: userId }, { $push: { interestedAds: adId } });
+			await User.updateOne({ _id: userId }, { $push: { interestedAds: adId } });
 			await ad.save();
 
-			// Create a notification (assuming a Notification model exists)
-			// const notification = new Notification({
-			// 	from: userId,
-			// 	to: ad.user, 
-			// 	type: "interest",
-			// });
-			// await notification.save();
+			// Create a notification for the ad owner
+			try {
+				const notification = new Notification({
+					from: userId,
+					to: ad.user,
+					type: "interest",
+					adId: adId
+				});
+				await notification.save();
+			} catch (notificationError) {
+				console.error("Error creating notification:", notificationError);
+				// Continue even if notification fails
+			}
 
 			res.status(200).json(ad.interests);
 		}
@@ -181,8 +207,14 @@ const interestedAd = async (req, res) => {
 
 const getAllAds = async (req, res) => {
 	try {
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 10;
+		const skip = (page - 1) * limit;
+		
 		const ads = await Ad.find()
 			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(limit)
 			.populate({
 				path: "user",
 				select: "-password",
@@ -191,8 +223,15 @@ const getAllAds = async (req, res) => {
 				path: "comments.user",
 				select: "-password",
 			});
+		
+		const totalAds = await Ad.countDocuments();
+		const hasMore = skip + ads.length < totalAds;
 
-		res.status(200).json(ads);
+		res.status(200).json({
+			ads,
+			hasMore,
+			nextPage: hasMore ? page + 1 : null
+		});
 	} catch (error) {
 		console.log("Error in getAllAds controller: ", error);
 		res.status(500).json({ error: "Internal server error" });
@@ -250,6 +289,36 @@ const getUserAds = async (req, res) => {
 	}
 };
 
+// Add comment route handler
+const getAdComments = async (req, res) => {
+	try {
+		const { id } = req.params;
+		
+		const ad = await Ad.findById(id)
+			.populate({
+				path: "comments.user",
+				select: "-password"
+			});
+			
+		if (!ad) {
+			return res.status(404).json({ error: "Ad not found" });
+		}
+		
+		res.status(200).json(ad.comments);
+	} catch (error) {
+		console.log("Error in getAdComments controller: ", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
 
-module.exports = { createAd, deleteAd, commentOnAd, interestedAd, getAllAds, getInterestedAds, getUserAds };
+module.exports = { 
+	createAd, 
+	deleteAd, 
+	commentOnAd, 
+	getAdComments,
+	interestedAd, 
+	getAllAds, 
+	getInterestedAds, 
+	getUserAds 
+};
  
