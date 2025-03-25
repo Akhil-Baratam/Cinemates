@@ -7,6 +7,9 @@ import Collabs from "./components/Collabs"
 import CollabFilters from "./components/CollabFilters"
 import { useQuery } from "@tanstack/react-query"
 import MyCollabs from "./components/MyCollabs"
+import { Link } from "react-router-dom"
+import { useAuth } from "../../contexts/AuthContext";
+
 
 const ExploreCollabs = () => {
   const [activeFilters, setActiveFilters] = useState({
@@ -14,6 +17,9 @@ const ExploreCollabs = () => {
     genre: "all",
     location: "all"
   })
+
+  const { authUser, isLoading } = useAuth();
+
 
   const handleFilterChange = (filterType, value) => {
     setActiveFilters(prev => ({
@@ -67,7 +73,15 @@ const ExploreCollabs = () => {
         
         {/* Right Column */}
         <div className="w-1/4 sticky top-20 h-fit">
-          <h2 className="text-xl font-bold mb-4">My Collabs</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">My Collabs</h2>
+            <Link 
+              to={`/collabs/user/${authUser?.username}`} 
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              View All
+            </Link>
+          </div>
           <MyCollabs />
         </div>
       </div>

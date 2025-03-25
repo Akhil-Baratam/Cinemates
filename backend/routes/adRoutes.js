@@ -1,17 +1,28 @@
 const express = require('express');
 const protectRoute = require('../middleware/protectRoute');
-const { createAd, deleteAd,  commentOnAd, interestedAd, getAllAds, getInterestedAds, getUserAds } = require('../controllers/adController');
-
+const {
+  createAd,
+  getAllAds,
+  getAdById,
+  getUserAds,
+  updateAd,
+  deleteAd,
+  toggleAdInterest,
+  updateAdStatus,
+} = require('../controllers/adController');
 
 const router = express.Router();
 
-router.post("/create", protectRoute, createAd);
-router.delete("/:id", protectRoute, deleteAd);
-router.post("/interest/:id", protectRoute, interestedAd);
-router.post("/comment/:id", protectRoute, commentOnAd);
-router.get("/all", protectRoute, getAllAds);
-router.get("/interested/:id", protectRoute, getInterestedAds);
-router.get("/user/:username", protectRoute, getUserAds);
- 
+// Public routes
+router.get('/:id', getAdById);
+router.get('/user', protectRoute, getUserAds);
+
+// Protected routes
+router.get('/', protectRoute, getAllAds);
+router.post('/create', protectRoute, createAd);
+router.put('/edit/:id', protectRoute, updateAd);
+router.delete('/delete/:id', protectRoute, deleteAd);
+router.post('/:id/toggle-interest', protectRoute, toggleAdInterest);
+router.put('/:id/status', protectRoute, updateAdStatus);
 
 module.exports = router; 

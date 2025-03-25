@@ -202,7 +202,7 @@ export default function PostACollab({ onSubmit }) {
             <motion.div
               ref={modalRef}
               initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
+              animate={{ x: 0 }} 
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="fixed top-6 left-0 h-[94%] z-30 w-full sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%] max-w-4xl bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"

@@ -6,7 +6,6 @@ const useCollabs = (filters = {}) => {
     queryKey: ["collabs", filters],
     queryFn: async ({ pageParam = 1 }) => {
       try {
-        // Build query string from filters
         const queryParams = new URLSearchParams({
           page: pageParam,
           limit: 10,

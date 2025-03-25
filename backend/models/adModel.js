@@ -11,15 +11,20 @@ const adSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    category:
-      {
-        type: String,
-      }, 
-    subcategory: [
-      { 
-        type: String,
-      },
-    ],
+    category: {
+      type: String,
+      required: true,
+      enum: ['Camera', 'Lens', 'Audio', 'Lighting', 'Accessories', 'Other']
+    },
+    subcategory: {
+      type: [String],
+      validate: {
+        validator: function(v) {
+          return v.length > 0;
+        },
+        message: 'At least one subcategory is required'
+      }
+    },
     description: {
       type: String,
       required: true,
@@ -32,6 +37,17 @@ const adSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
+      min: 0,
+      validate: {
+        validator: Number.isFinite,
+        message: '{VALUE} is not a valid price'
+      }
+    },
+    currency: {
+      type: String,
+      enum: ['USD', 'EUR', 'INR'],
+      default: 'USD',
+      required: true
     },
     isNegotiable: {
       type: Boolean,
@@ -53,33 +69,86 @@ const adSchema = new mongoose.Schema(
       },
     ],
     warranty: {
-      type: Boolean,
-      default: false,
-    },
-    imgs: [
-      {
-        type: String,
+      hasWarranty: {
+        type: Boolean,
+        default: false
       },
-    ],
+      expiryDate: {
+        type: Date
+      },
+      details: {
+        type: String
+      }
+    },
+    imgs: [{
+      url: {
+        type: String,
+        required: true
+      },
+      isPrimary: {
+        type: Boolean,
+        default: false
+      },
+      caption: {
+        type: String
+      }
+    }],
     interests: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
-    comments: [
-      {
-        text: {
-          type: String,
-          required: true,
-        },
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
+    condition: {
+      type: String,
+      required: true,
+      enum: ['New', 'Like New', 'Good', 'Fair', 'Poor'],
+      default: 'Good'
+    },
+    contactPreferences: {
+      email: {
+        type: Boolean,
+        default: true
       },
-    ],
+      phone: {
+        type: Boolean,
+        default: true
+      },
+      chat: {
+        type: Boolean,
+        default: true
+      }
+    },
+    status: {
+      type: String,
+      enum: ['available', 'pending', 'sold', 'reserved', 'expired'],
+      default: 'available',
+      required: true
+    },
+    views: {
+      type: Number,
+      default: 0
+    },
+    shipping: {
+      available: {
+        type: Boolean,
+        default: false
+      },
+      cost: {
+        type: Number,
+        min: 0
+      },
+      methods: [{
+        type: String,
+        enum: ['Local Pickup', 'Domestic Shipping', 'International']
+      }]
+    },
+    brand: {
+      type: String
+    },
+    model: {
+      type: String
+    },
   },
   { timestamps: true }
 );

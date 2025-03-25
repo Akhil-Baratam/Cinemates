@@ -1,324 +1,428 @@
 const Notification = require("../models/notificationModel");
 const Ad = require("../models/adModel");
 const User = require("../models/userModel");
+const mongoose = require("mongoose");
 var cloudinary = require("cloudinary").v2;
 
 const createAd = async (req, res) => {
   try {
-    const { 
-      description, 
-      imgs, 
-      price, 
-      address, 
-      bought_on, 
-      productName, 
-      category, 
-      subcategory, 
-      isNegotiable, 
-      location, 
-      tags, 
-      warranty 
-    } = req.body;
-    const userId = req.user._id.toString();
-
-    // Validate that all required fields are provided
-    if (!description) { 
-      return res.status(400).json({ error: "Description is required" });
-    }
-
-    if (!price) {
-      return res.status(400).json({ error: "Price is required" });
-    }
-
-    if (!location) {
-      return res.status(400).json({ error: "Location is required" });
-    }
-
-    if (!bought_on) {
-      return res.status(400).json({ error: "Bought on date is required" });
-    }
-
-    if (!productName) {
-      return res.status(400).json({ error: "Product name is required" });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    let imgUrls = [];
-    console.log("Uploading images to Cloudinary...");
-    if (imgs && imgs.length > 0) {
-      for (const img of imgs) {
-        try {
-          const uploadedResponse = await cloudinary.uploader.upload(img, {
-            folder: "ads",
-          });
-          console.log("Cloudinary upload successful:", uploadedResponse);
-          imgUrls.push(uploadedResponse.secure_url);
-        } catch (uploadError) {
-          console.error("Error uploading to Cloudinary:", uploadError);
-          return res.status(500).json({ error: "Error uploading images" });
-        }
-      }
-    }
-
-    const newAd = new Ad({
-      user: userId,
+    const {
       productName,
       category,
       subcategory,
       description,
-      imgs: imgUrls,
       price,
+      currency,
       location,
-      bought_on,
-      isNegotiable: isNegotiable || false,
-      isSold: false,
-      tags,
-      warranty: warranty || false
+      warranty,
+      condition,
+      shipping,
+      brand,
+      model,
+      contactPreferences,
+    } = req.body;
+
+    // Basic validation
+    if (!productName || !category || !description || !price || !location) {
+      return res.status(400).json({ error: "Please provide all required fields" });
+    }
+
+    // Create new ad
+    const newAd = await Ad.create({
+      user: req.user._id,
+      productName,
+      category,
+      subcategory,
+      description,
+      price,
+      currency,
+      location,
+      warranty,
+      condition,
+      shipping,
+      brand,
+      model,
+      contactPreferences,
     });
 
-    await newAd.save();
-    res.status(201).json(newAd);
+    // Populate user data
+    const populatedAd = await Ad.findById(newAd._id).populate("user", "-password");
+
+    res.status(201).json(populatedAd);
   } catch (error) {
-    console.error("Error in createAd controller: ", error);
+    console.error("Error in createAd:", error);
+    res.status(500).json({ error: "Failed to create ad" });
+  }
+};
+
+const deleteAd = async (req, res) => {
+  try {
+    const ad = await Ad.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found or unauthorized" });
+    }
+
+    res.status(200).json({ message: "Ad deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteAd:", error);
+    res.status(500).json({ error: "Failed to delete ad" });
+  }
+};
+
+const commentOnAd = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const adId = req.params.id;
+    const userId = req.user._id;
+
+    // Validate input
+    if (!text) {
+      return res.status(400).json({ error: "Text field is required" });
+    }
+
+    // Find the ad by ID
+    const ad = await Ad.findById(adId);
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    // Add the comment to the ad
+    const comment = { user: userId, text };
+    ad.comments.push(comment);
+    await ad.save();
+
+    res.status(200).json(ad);
+  } catch (error) {
+    console.log("Error in commentOnAd controller: ", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
- 
-const deleteAd = async (req, res) => {
-	try {
-		const ad = await Ad.findById(req.params.id);
-		if (!ad) {
-			return res.status(404).json({ error: "Ad not found" });
-		}
-
-		// Check if the logged-in user is the owner of the ad
-		if (ad.user.toString() !== req.user._id.toString()) {
-			return res.status(401).json({ error: "You are not authorized to delete this ad" });
-		}
-
-		// Loop through the imgs array and delete each image from Cloudinary
-		if (ad.imgs && ad.imgs.length > 0) {
-			console.log("Deleting images from Cloudinary...");
-			for (const img of ad.imgs) {
-				try {
-					const imgId = img.split("/").pop().split(".")[0];
-					await cloudinary.uploader.destroy(imgId);
-					console.log(`Deleted image ${imgId} from Cloudinary`);
-				} catch (cloudinaryError) {
-					console.error("Error deleting image from Cloudinary:", cloudinaryError);
-					return res.status(500).json({ error: "Error deleting images from Cloudinary" });
-				}
-			}
-		}
-
-		// Delete the ad from the database
-		await Ad.findByIdAndDelete(req.params.id);
-
-		res.status(200).json({ message: "Ad deleted successfully" });
-	} catch (error) {
-		console.log("Error in deleteAd controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
-};
-
-
-const commentOnAd = async (req, res) => {
-	try {
-		const { text } = req.body;
-		const adId = req.params.id;
-		const userId = req.user._id;
-
-		// Validate input
-		if (!text) {
-			return res.status(400).json({ error: "Text field is required" });
-		}
-
-		// Find the ad by ID
-		const ad = await Ad.findById(adId);
-		if (!ad) {
-			return res.status(404).json({ error: "Ad not found" });
-		}
-
-		// Add the comment to the ad
-		const comment = { user: userId, text };
-		ad.comments.push(comment);
-		await ad.save();
-
-		res.status(200).json(ad);
-	} catch (error) {
-		console.log("Error in commentOnAd controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
-};
-
 
 const interestedAd = async (req, res) => {
-	try {
-		const userId = req.user._id;
-		const { id: adId } = req.params;
+  try {
+    const userId = req.user._id;
+    const { id: adId } = req.params;
 
-		// Find the ad by ID
-		const ad = await Ad.findById(adId);
-		if (!ad) {
-			return res.status(404).json({ error: "Ad not found" });
-		}
+    // Find the ad by ID
+    const ad = await Ad.findById(adId);
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
 
-		// Check if the user has already expressed interest in the ad
-		const userInterestedAd = ad.interests.includes(userId);
+    // Check if the user has already expressed interest in the ad
+    const userInterestedAd = ad.interests.includes(userId);
 
-		if (userInterestedAd) {
-			// Remove interest
-			await Ad.updateOne({ _id: adId }, { $pull: { interests: userId } });
-			await User.updateOne({ _id: userId }, { $pull: { interestedAds: adId } });
+    if (userInterestedAd) {
+      // Remove interest
+      await Ad.updateOne({ _id: adId }, { $pull: { interests: userId } });
+      await User.updateOne({ _id: userId }, { $pull: { interestedAds: adId } });
 
-			const updatedInterests = ad.interests.filter((id) => id.toString() !== userId.toString());
-			res.status(200).json(updatedInterests);
-		} else {
-			// Add interest
-			ad.interests.push(userId);
-			await User.updateOne({ _id: userId }, { $push: { interestedAds: adId } });
-			await ad.save();
+      const updatedInterests = ad.interests.filter((id) => id.toString() !== userId.toString());
+      res.status(200).json(updatedInterests);
+    } else {
+      // Add interest
+      ad.interests.push(userId);
+      await User.updateOne({ _id: userId }, { $push: { interestedAds: adId } });
+      await ad.save();
 
-			// Create a notification for the ad owner
-			try {
-				const notification = new Notification({
-					from: userId,
-					to: ad.user,
-					type: "interest",
-					adId: adId
-				});
-				await notification.save();
-			} catch (notificationError) {
-				console.error("Error creating notification:", notificationError);
-				// Continue even if notification fails
-			}
+      // Create a notification for the ad owner
+      try {
+        const notification = new Notification({
+          from: userId,
+          to: ad.user,
+          type: "interest",
+          adId: adId
+        });
+        await notification.save();
+      } catch (notificationError) {
+        console.error("Error creating notification:", notificationError);
+        // Continue even if notification fails
+      }
 
-			res.status(200).json(ad.interests);
-		}
-	} catch (error) {
-		console.log("Error in interestedAd controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
+      res.status(200).json(ad.interests);
+    }
+  } catch (error) {
+    console.log("Error in interestedAd controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 const getAllAds = async (req, res) => {
-	try {
-		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 10;
-		const skip = (page - 1) * limit;
-		
-		const ads = await Ad.find()
-			.sort({ createdAt: -1 })
-			.skip(skip)
-			.limit(limit)
-			.populate({
-				path: "user",
-				select: "-password",
-			})
-			.populate({
-				path: "comments.user",
-				select: "-password",
-			});
-		
-		const totalAds = await Ad.countDocuments();
-		const hasMore = skip + ads.length < totalAds;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-		res.status(200).json({
-			ads,
-			hasMore,
-			nextPage: hasMore ? page + 1 : null
-		});
-	} catch (error) {
-		console.log("Error in getAllAds controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
+    // Build filter object
+    const filters = {};
+    if (req.query.category && req.query.category !== 'all') filters.category = req.query.category;
+    if (req.query.condition && req.query.condition !== 'all') filters.condition = req.query.condition;
+    if (req.query.location && req.query.location !== 'all') filters.location = req.query.location;
+    if (req.query.maxPrice && req.query.maxPrice !== '') filters.price = { $lte: parseInt(req.query.maxPrice) };
+    if (req.query.minPrice && req.query.minPrice !== '') {
+      filters.price = { ...filters.price, $gte: parseInt(req.query.minPrice) };
+    }
+    filters.status = req.query.status || "available"; // Default to available ads
+
+    // Get ads with filters and pagination
+    const ads = await Ad.find(filters)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("user", "-password");
+
+    // Get total count for pagination
+    const total = await Ad.countDocuments(filters);
+
+    res.status(200).json({
+      ads,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalAds: total,
+    });
+  } catch (error) {
+    console.error("Error in getAllAds:", error);
+    res.status(500).json({ error: "Failed to fetch ads" });
+  }
 };
-
 
 const getInterestedAds = async (req, res) => {
-	const userId = req.params.id;
+  const userId = req.params.id;
 
-	try {
-		const user = await User.findById(userId);
-		if (!user) return res.status(404).json({ error: "User not found" });
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-		const interestedAds = await Ad.find({ _id: { $in: user.interestedAds } })
-			.populate({
-				path: "user",
-				select: "-password",
-			})
-			.populate({
-				path: "comments.user",
-				select: "-password",
-			});
+    const interestedAds = await Ad.find({ _id: { $in: user.interestedAds } })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
 
-		res.status(200).json(interestedAds);
-	} catch (error) {
-		console.log("Error in getInterestedAds controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
+    res.status(200).json(interestedAds);
+  } catch (error) {
+    console.log("Error in getInterestedAds controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-
+// Get ads for the logged-in user
 const getUserAds = async (req, res) => {
-	try {
-		const { username } = req.params;
+  try {
+    const userId = req.user._id;
 
-		const user = await User.findOne({ username });
-		if (!user) return res.status(404).json({ error: "User not found" });
+    // Fetch ads for the user
+    const ads = await Ad.find({ user: userId }).populate("user", "-password").lean();
 
-		const ads = await Ad.find({ user: user._id })
-			.sort({ createdAt: -1 })
-			.populate({
-				path: "user",
-				select: "-password",
-			})
-			.populate({
-				path: "comments.user",
-				select: "-password",
-			});
-
-		res.status(200).json(ads);
-	} catch (error) {
-		console.log("Error in getUserAds controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
+    // Return an empty array if no ads are found
+    res.status(200).json(ads || []);
+  } catch (error) {
+    console.error("Error in getUserAds:", error);
+    res.status(500).json({ error: "Failed to fetch user's ads" });
+  }
 };
 
 // Add comment route handler
 const getAdComments = async (req, res) => {
-	try {
-		const { id } = req.params;
-		
-		const ad = await Ad.findById(id)
-			.populate({
-				path: "comments.user",
-				select: "-password"
-			});
-			
-		if (!ad) {
-			return res.status(404).json({ error: "Ad not found" });
-		}
-		
-		res.status(200).json(ad.comments);
-	} catch (error) {
-		console.log("Error in getAdComments controller: ", error);
-		res.status(500).json({ error: "Internal server error" });
-	}
+  try {
+    const { id } = req.params;
+    
+    const ad = await Ad.findById(id)
+      .populate({
+        path: "comments.user",
+        select: "-password"
+      });
+      
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+    
+    res.status(200).json(ad.comments);
+  } catch (error) {
+    console.log("Error in getAdComments controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-module.exports = { 
-	createAd, 
-	deleteAd, 
-	commentOnAd, 
-	getAdComments,
-	interestedAd, 
-	getAllAds, 
-	getInterestedAds, 
-	getUserAds 
+// Get single ad by ID
+const getAdById = async (req, res) => {
+  try {
+    const adId = req.params.id;
+
+    // Validate the adId
+    if (!mongoose.Types.ObjectId.isValid(adId)) {
+      return res.status(400).json({ error: "Invalid ad ID" });
+    }
+
+    const ad = await Ad.findById(adId)
+      .populate("user", "-password")
+      .populate("interests", "-password");
+
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    // Increment views
+    ad.views += 1;
+    await ad.save();
+
+    res.status(200).json(ad);
+  } catch (error) {
+    console.error("Error in getAdById:", error);
+    res.status(500).json({ error: "Failed to fetch ad" });
+  }
+};
+
+// Update ad
+const updateAd = async (req, res) => {
+  try {
+    const adId = req.params.id;
+    const updates = req.body;
+    
+    // Ensure user owns the ad
+    const ad = await Ad.findOne({ _id: adId, user: req.user._id });
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found or unauthorized" });
+    }
+
+    // Remove fields that shouldn't be updated
+    delete updates.user;
+    delete updates.views;
+    delete updates.createdAt;
+
+    const updatedAd = await Ad.findByIdAndUpdate(
+      adId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).populate("user", "-password");
+
+    res.status(200).json(updatedAd);
+  } catch (error) {
+    console.error("Error in updateAd:", error);
+    res.status(500).json({ error: "Failed to update ad" });
+  }
+};
+
+// Toggle interest in ad (consolidated version)
+const toggleAdInterest = async (req, res) => {
+  try {
+    const adId = req.params.id;
+    const userId = req.user._id;
+
+    // Find the ad
+    const ad = await Ad.findById(adId);
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if user is already interested
+    const isInterested = ad.interests.includes(userId);
+
+    if (isInterested) {
+      // Remove interest
+      await Promise.all([
+        Ad.findByIdAndUpdate(adId, {
+          $pull: { interests: userId }
+        }),
+        User.findByIdAndUpdate(userId, {
+          $pull: { interestedAds: adId }
+        })
+      ]);
+
+      // Create notification for seller about removed interest
+      await new Notification({
+        type: "interest_removed",
+        from: userId,
+        to: ad.user,
+        ad: adId
+      }).save();
+
+    } else {
+      // Add interest
+      await Promise.all([
+        Ad.findByIdAndUpdate(adId, {
+          $addToSet: { interests: userId }
+        }),
+        User.findByIdAndUpdate(userId, {
+          $addToSet: { interestedAds: adId }
+        })
+      ]);
+
+      // Create notification for seller about new interest
+      await new Notification({
+        type: "new_interest",
+        from: userId,
+        to: ad.user,
+        ad: adId
+      }).save();
+    }
+
+    // Return updated ad with populated fields
+    const updatedAd = await Ad.findById(adId)
+      .populate("user", "-password")
+      .populate("interests", "-password");
+
+    res.status(200).json(updatedAd);
+
+  } catch (error) {
+    console.error("Error in toggleAdInterest:", error);
+    res.status(500).json({ error: "Failed to update interest in ad" });
+  }
+};
+
+// Update ad status
+const updateAdStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['available', 'pending', 'sold', 'reserved', 'expired'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    const ad = await Ad.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      { status },
+      { new: true }
+    ).populate("user", "-password");
+
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found or unauthorized" });
+    }
+
+    res.status(200).json(ad);
+  } catch (error) {
+    console.error("Error in updateAdStatus:", error);
+    res.status(500).json({ error: "Failed to update ad status" });
+  }
+};
+
+module.exports = {
+  createAd,
+  deleteAd,
+  commentOnAd,
+  getAdComments,
+  interestedAd,
+  getAllAds,
+  getInterestedAds,
+  getUserAds,
+  getAdById,
+  updateAd,
+  toggleAdInterest,
+  updateAdStatus,
 };
  

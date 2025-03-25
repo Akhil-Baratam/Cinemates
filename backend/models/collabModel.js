@@ -69,7 +69,7 @@ const collabSchema = new mongoose.Schema(
       enum: ["Less than a week", "Less than a month", "Less than 3 months", "More than 3 months"],
     },
     location: {
-      type: String,
+      type: String, 
       required: true,
     },
     requiredCraftsmen: [
