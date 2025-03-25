@@ -1,6 +1,6 @@
 const express = require('express');
 const protectRoute = require('../middleware/protectRoute');
-const { createCollab, deleteCollab, getAllCollabs, getUserCollabs } = require('../controllers/collabController');
+const { createCollab, deleteCollab, getAllCollabs, getUserCollabs, getCollabById } = require('../controllers/collabController');
 
 
 const router = express.Router();
@@ -11,7 +11,8 @@ router.delete("/delete/:id", protectRoute, deleteCollab);
 // router.post("/comment/:id", protectRoute, commentOnCollab);
 router.get("/", protectRoute, getAllCollabs);
 // router.get("/interested/:id", protectRoute, getInterestedCollabs);
-router.get("/:username", protectRoute, getUserCollabs);
+router.get("/user", protectRoute, getUserCollabs);
+router.get("/:id", protectRoute, getCollabById);
  
  
 module.exports = router;

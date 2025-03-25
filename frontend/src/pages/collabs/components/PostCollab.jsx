@@ -176,12 +176,14 @@ export default function PostACollab({ onSubmit }) {
 
   return (
     <>
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="rounded-full bg-gradient-to-r from-gray-900 to-slate-900 hover:from-gray-800 hover:to-slate-800 text-white font-medium"
-      >
-        Post a Collab
-      </Button>
+      <div className="w-full">
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="w-full rounded-full bg-gradient-to-r from-gray-900 to-slate-900 hover:from-gray-800 hover:to-slate-800 text-white font-medium"
+        >
+          Post a Collab
+        </Button>
+      </div>
 
       <AnimatePresence>
         {isOpen && (
@@ -207,7 +209,7 @@ export default function PostACollab({ onSubmit }) {
               style={{ zIndex: 50 }}
             >
               <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b dark:border-gray-800 p-4 flex justify-between items-center">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-slate-800 bg-clip-text text-transparent">
                   Create Collaboration
                 </h2>
                 <Button
@@ -223,8 +225,8 @@ export default function PostACollab({ onSubmit }) {
               <div className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Title Section */}
-                  <div className="space-y-2">
-                    <Label htmlFor="title" className="text-lg font-medium">
+                  <div className="space-y-2 px-5">
+                    <Label htmlFor="title" className="text-lg font-semibold">
                       Project Title
                     </Label>
                     <Input
@@ -241,15 +243,15 @@ export default function PostACollab({ onSubmit }) {
                   {/* Two Column Layout */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left Column */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                        className=" p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <Film className="h-5 w-5 text-purple-500" />
+                          <Film className="h-5 w-5 text-zinc-700" />
                           <h3 className="font-semibold text-lg">Project Details</h3>
                         </div>
 
@@ -314,7 +316,7 @@ export default function PostACollab({ onSubmit }) {
 
                           <div className="space-y-2">
                             <Label htmlFor="deadline" className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-purple-500" />
+                              <Calendar className="h-4 w-4 text-zinc-700" />
                               Deadline
                             </Label>
                             <Input
@@ -337,7 +339,7 @@ export default function PostACollab({ onSubmit }) {
                         className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <Tag className="h-5 w-5 text-indigo-500" />
+                          <Tag className="h-5 w-5 text-zinc-700" />
                           <h3 className="font-semibold text-lg">Genres</h3>
                         </div>
 
@@ -349,7 +351,7 @@ export default function PostACollab({ onSubmit }) {
                                   id={genre}
                                   checked={formData.genres.includes(genre)}
                                   onCheckedChange={(checked) => handleGenresChange(genre, checked)}
-                                  className="data-[state=checked]:bg-indigo-600"
+                                  className="data-[state=checked]:bg-zinc-800"
                                 />
                                 <Label htmlFor={genre} className="text-sm">
                                   {genre}
@@ -367,7 +369,7 @@ export default function PostACollab({ onSubmit }) {
                         className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <MapPin className="h-5 w-5 text-purple-500" />
+                          <MapPin className="h-5 w-5 text-zinc-700" />
                           <h3 className="font-semibold text-lg">Location</h3>
                         </div>
 
@@ -383,10 +385,29 @@ export default function PostACollab({ onSubmit }) {
                           />
                         </div>
                       </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                          <div className="space-y-2">
+                            <Label htmlFor="referenceLinks">Reference Links</Label>
+                            <Textarea
+                              id="referenceLinks"
+                              name="referenceLinks"
+                              value={formData.referenceLinks.join("\n")}
+                              onChange={(e) => setFormData({ ...formData, referenceLinks: e.target.value.split("\n") })}
+                              placeholder="Enter reference links, one per line"
+                              className="resize-none"
+                            />
+                          </div>
+                      </motion.div>
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -402,16 +423,55 @@ export default function PostACollab({ onSubmit }) {
                           value={formData.description}
                           onChange={handleChange}
                           placeholder="Describe your project in detail. What's the concept? What are you looking for?"
-                          className="min-h-[150px] resize-none"
+                          className="min-h-[215px] resize-none"
                           required
                         />
                       </motion.div>
 
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Users className="h-5 w-5 text-zinc-700" />
+                          <h3 className="font-semibold text-lg">Required Craftsmen</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            "Video Editor",
+                            "Audio Mixer",
+                            "Cinematographer",
+                            "Scriptwriter",
+                            "Voice Artist",
+                            "Actor",
+                            "Director",
+                            "Producer",
+                            "Other",
+                          ].map((craft) => (
+                            <div key={craft} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={craft}
+                                checked={formData.requiredCraftsmen.includes(craft)}
+                                onCheckedChange={(checked) => handleCraftsmenChange(craft, checked)}
+                                className="data-[state=checked]:bg-zinc-800"
+                              />
+                              <Label htmlFor={craft} className="text-sm">
+                                {craft}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                      
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
+                        className="space-y-4 px-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
                       >
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-5 w-5 text-green-500" />
@@ -452,49 +512,11 @@ export default function PostACollab({ onSubmit }) {
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Users className="h-5 w-5 text-indigo-500" />
-                          <h3 className="font-semibold text-lg">Required Craftsmen</h3>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            "Video Editor",
-                            "Audio Mixer",
-                            "Cinematographer",
-                            "Scriptwriter",
-                            "Voice Artist",
-                            "Actor",
-                            "Director",
-                            "Producer",
-                            "Other",
-                          ].map((craft) => (
-                            <div key={craft} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={craft}
-                                checked={formData.requiredCraftsmen.includes(craft)}
-                                onCheckedChange={(checked) => handleCraftsmenChange(craft, checked)}
-                                className="data-[state=checked]:bg-indigo-600"
-                              />
-                              <Label htmlFor={craft} className="text-sm">
-                                {craft}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
                         className="space-y-4 p-5 rounded-xl bg-gray-50 dark:bg-gray-800 shadow-sm"
                       >
                         <div className="flex items-center gap-2">
-                          <Upload className="h-5 w-5 text-purple-500" />
+                          <Upload className="h-5 w-5 text-zinc-700" />
                           <h3 className="font-semibold text-lg">Media & References</h3>
                         </div>
 
@@ -509,18 +531,6 @@ export default function PostACollab({ onSubmit }) {
                               multiple
                               onChange={handleFileChange}
                               className="cursor-pointer"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="referenceLinks">Reference Links</Label>
-                            <Textarea
-                              id="referenceLinks"
-                              name="referenceLinks"
-                              value={formData.referenceLinks.join("\n")}
-                              onChange={(e) => setFormData({ ...formData, referenceLinks: e.target.value.split("\n") })}
-                              placeholder="Enter reference links, one per line"
-                              className="resize-none"
                             />
                           </div>
                         </div>
@@ -540,7 +550,7 @@ export default function PostACollab({ onSubmit }) {
                     </Button>
                     <Button
                       type="submit"
-                      className="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                      className="rounded-full bg-gradient-to-r from-gray-900 to-slate-800 hover:from-gray-800 hover:to-slate-700"
                     >
                       Post Collaboration
                     </Button>

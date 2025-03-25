@@ -101,7 +101,7 @@ const Navbar = () => {
   return (
     <ErrorBoundary fallback={<div>Something went wrong</div>}>
       <nav className="relative bg-white z-50 shadow-lg">
-        <div className=" fixed top-0 left-0 right-0 bg-white bg-opacity-90 backdrop-blur-sm border-b-2 border-[#bdbaba]">
+        <div className=" fixed top-0 left-0 right-0 bg-white bg-opacity-70 backdrop-blur-sm border-b-2 border-[#bdbaba]">
           <div className="flex items-center justify-between h-12 mx-10">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0">

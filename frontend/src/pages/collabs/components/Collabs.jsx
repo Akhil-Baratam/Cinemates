@@ -104,7 +104,7 @@ const Collabs = ({ filters }) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4"
               style={{
                 gridAutoRows: "minmax(250px, auto)",
               }}
@@ -116,21 +116,16 @@ const Collabs = ({ filters }) => {
               )}
             </motion.div>
 
-            {hasNextPage && (
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isFetchingNextPage ? (
-                    <LoadingSpinner size="sm" />
-                  ) : (
-                    "Load More"
-                  )}
-                </button>
-              </div>
-            )}
+            {hasNextPage && !isFetchingNextPage && (
+            <div className="p-4 flex justify-center">
+              <button
+                onClick={() => fetchNextPage()}
+                className="px-3 py-1 bg-primary text-slate-200 rounded-md hover:bg-primary-dark"
+              >
+                Load More  
+              </button>
+            </div>
+          )}
           </>
         )}
       </AnimatePresence>

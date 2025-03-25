@@ -6,6 +6,7 @@ import PostACollab from "./components/PostCollab"
 import Collabs from "./components/Collabs"
 import CollabFilters from "./components/CollabFilters"
 import { useQuery } from "@tanstack/react-query"
+import MyCollabs from "./components/MyCollabs"
 
 const ExploreCollabs = () => {
   const [activeFilters, setActiveFilters] = useState({
@@ -30,10 +31,10 @@ const ExploreCollabs = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full pt-16"
+      className="w-full mx-auto pt-16 px-4 sm:px-6"
     >
       {/* Mobile Layout - Single Column */}
-      <div className="md:hidden space-y-6">
+      <div className="lg:hidden space-y-6">
         <div className="flex flex-col space-y-4">
           <h1 className="text-2xl font-bold">Collaboration Posts</h1>
           <PostACollab onSubmit={handleCollabPosted} />
@@ -48,9 +49,9 @@ const ExploreCollabs = () => {
       </div>
 
       {/* Desktop Layout - 3 Column */}
-      <div className="hidden md:flex md:gap-6 md:justify-between">
-        {/* Left Column - 1/4 width */}
-        <div className="w-1/4 space-y-6">
+      <div className="hidden lg:flex lg:gap-6 lg:justify-between">
+        {/* Left Column */}
+        <div className="w-1/5 space-y-6 sticky top-20 h-fit">
           <PostACollab onSubmit={handleCollabPosted} />
           
           <CollabFilters 
@@ -59,15 +60,15 @@ const ExploreCollabs = () => {
           />
         </div>
         
-        {/* Middle Column - 2/4 width */}
-        <div className="w-2/4  ">
+        {/* Middle Column */}
+        <div className="w-3/5 px-4">
           <Collabs filters={activeFilters} />
         </div>
         
-        {/* Right Column - 1/4 width */}
-        <div className="w-1/4">
+        {/* Right Column */}
+        <div className="w-1/4 sticky top-20 h-fit">
           <h2 className="text-xl font-bold mb-4">My Collabs</h2>
-          {/* Implementation will be done later */}
+          <MyCollabs />
         </div>
       </div>
     </motion.div>

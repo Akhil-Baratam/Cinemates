@@ -131,7 +131,7 @@ const Posts = ({ feedType, username, userId }) => {
                 onClick={() => fetchNextPage()}
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
               >
-                Load More
+                Load More  
               </button>
             </div>
           )}

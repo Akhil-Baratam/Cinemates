@@ -125,24 +125,33 @@ const getAllCollabs = async (req, res) => {
   }
 };
 
-const getUserCollabs = async (req, res ) => {
+const getUserCollabs = async (req, res) => {
   try {
-    const {username} = req.params;
-    const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const collabs = await Collab.find({ user: user._id })
-     .sort({ createdAt: -1 })
-     .populate({
-        path: "user",
-        select: "-password",
-      });
+    const userId = req.user._id;
+    const collabs = await Collab.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .select("title description projectType createdAt")
+      .lean();
 
     res.status(200).json(collabs);
   } catch (error) {
-    console.log("Error in getCollabAds controller: ", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error fetching user collabs:", error);
+    res.status(500).json({ error: "Failed to fetch user collaborations" });
   }
-}
+};
 
-module.exports = { createCollab, deleteCollab, getAllCollabs, getUserCollabs  };
+// Get a single Collab post by ID
+const getCollabById = async (req, res) => {
+  try {
+    const collab = await Collab.findById(req.params.id).populate("user", "-password");
+    if (!collab) {
+      return res.status(404).json({ error: "Collaboration Post not found" });
+    }
+    res.status(200).json(collab);
+  } catch (error) {
+    console.error("Error fetching collaboration:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { createCollab, deleteCollab, getAllCollabs, getUserCollabs, getCollabById };

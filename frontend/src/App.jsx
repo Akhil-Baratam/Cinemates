@@ -26,7 +26,7 @@ const PublicLayout = ({ children }) => (
 );
 
 const AuthenticatedLayout = ({ children }) => (
-  <div className="bg-white font-poppins min-h-screen min-w-max">
+  <div className="bg-white font-poppins min-h-screen">
     <Navbar />
     <main className="container ">{children}</main>
   </div>
