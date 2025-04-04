@@ -34,53 +34,45 @@ const MyAds = () => {
     }
   });
 
-  if (isLoading) return (
-    <div className="flex justify-center items-center p-4">
-      <LoadingSpinner />
-    </div>
-  );
-
-  if (error) return (
-    <div className="text-center p-4">
-      <p className="text-red-500 text-sm">Failed to load ads</p>
-    </div>
-  );
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <p className="text-red-500">Error: {error.message}</p>;
 
   // Get only the latest 5 ads
   const latestAds = ads?.slice(0, 5) || [];
 
-  if (latestAds.length === 0) {
-    return (
-      <div className="text-center p-4">
-        <p className="text-muted-foreground text-sm">No ads posted yet</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-2">
       {latestAds.map((ad) => (
-        <Card 
-          key={ad._id} 
-          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-        >
-          <div className="p-3 flex items-center justify-between">
-            <div className="flex-1 min-w-0"> {/* Added min-w-0 for text truncation */}
-              <h3 className="font-medium text-sm line-clamp-1">{ad.productName}</h3>
-              <p className="text-sm text-muted-foreground">
-                {formatPrice(ad.price, ad.currency)}
-              </p>
-            </div>
-            <Badge 
-              variant={ad.isSold ? "secondary" : "default"}
-              className="whitespace-nowrap ml-2"
-            >
-              {ad.isSold ? "Sold" : "Active"}
-            </Badge>
-          </div>
-        </Card>
+        <AdCard key={ad._id} ad={ad} />
       ))}
     </div>
+  );
+};
+
+// Subcomponent for individual ad cards
+const AdCard = ({ ad }) => {
+  return (
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      {/* Upper section - Title */} 
+      <div className="px-3 py-1 border-b">
+        <h3 className="font-medium text-sm line-clamp-1">{ad.productName}</h3>
+      </div>
+      
+      {/* Lower section - Price and Status */}
+      <div className="px-3 py-1 flex items-center justify-between">
+        <div className="relative flex-1 pr-4">
+          <p className="text-xs font-light text-muted-foreground">
+            {formatPrice(ad.price, ad.currency)}
+          </p>
+        </div>
+        <Badge 
+          variant={ad.isSold ? "secondary" : "default"}
+          className="text-xs whitespace-nowrap"
+        >
+          {ad.isSold ? "Sold" : "Active"}
+        </Badge>
+      </div>
+    </Card>
   );
 };
 

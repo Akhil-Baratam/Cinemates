@@ -6,7 +6,7 @@ var cloudinary = require("cloudinary").v2;
 
 const createAd = async (req, res) => {
   try {
-    const {
+    let {
       productName,
       category,
       subcategory,
@@ -20,7 +20,48 @@ const createAd = async (req, res) => {
       brand,
       model,
       contactPreferences,
+      tags,
     } = req.body;
+
+    let uploadedImages  = [];
+
+    // Parse JSON strings if needed
+    if (typeof subcategory === 'string') {
+      try {
+        subcategory = JSON.parse(subcategory);
+      } catch (e) {
+        subcategory = [subcategory];
+      }
+    }
+    
+    if (typeof contactPreferences === 'string') {
+      try {
+        contactPreferences = JSON.parse(contactPreferences);
+      } catch (e) {
+        contactPreferences = [contactPreferences];
+      }
+    }
+    
+    if (typeof tags === 'string') {
+      try {
+        tags = JSON.parse(tags);
+      } catch (e) {
+        tags = tags.split(',').map(tag => tag.trim());
+      }
+    }
+
+    // Handle image upload to Cloudinary
+    if (req.files && req.files.length > 0) {
+      for (let file of req.files) {
+        try {
+          const result = await cloudinary.uploader.upload(file.path, { folder: "ads" });
+          uploadedImages.push({ url: result.secure_url, isPrimary: uploadedImages.length === 0 });
+        } catch (error) {
+          console.error("Error uploading to Cloudinary:", error);
+          return res.status(500).json({ error: "Error uploading images" });
+        }
+      }
+    }
 
     // Basic validation
     if (!productName || !category || !description || !price || !location) {
@@ -43,6 +84,8 @@ const createAd = async (req, res) => {
       brand,
       model,
       contactPreferences,
+      tags,
+      imgs: uploadedImages
     });
 
     // Populate user data

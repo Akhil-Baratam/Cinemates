@@ -44,13 +44,11 @@ const CollabCard = ({ collab }) => {
           <p className="text-xs font-light text-muted-foreground line-clamp-1">
             {collab.description}
           </p>
-          {/* Gradient overlay for text fade effect */}
-          <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-r from-transparent to-background" />
         </div>
         <span className="text-xs px-2 py-1 bg-muted rounded-full whitespace-nowrap">
           {collab.projectType}
         </span>
-      </div>
+      </div>  
     </Card>
   );
 };

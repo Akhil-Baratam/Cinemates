@@ -57,7 +57,6 @@ const adSchema = new mongoose.Schema(
     isSold: {
       type: Boolean,
       default: false,
-      required: true,
     },
     location: {
       type: String,
@@ -88,9 +87,6 @@ const adSchema = new mongoose.Schema(
       isPrimary: {
         type: Boolean,
         default: false
-      },
-      caption: {
-        type: String
       }
     }],
     interests: [
@@ -152,6 +148,14 @@ const adSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Ensure at least one image is present
+adSchema.pre("validate", function (next) {
+  if (!this.imgs || this.imgs.length === 0) {
+    return next(new Error("At least one image is required"));
+  }
+  next();
+});
 
 const Ad = mongoose.model("Ad", adSchema);
 

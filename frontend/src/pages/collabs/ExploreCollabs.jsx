@@ -72,7 +72,7 @@ const ExploreCollabs = () => {
         </div>
         
         {/* Right Column */}
-        <div className="w-1/4 sticky top-20 h-fit">
+        <div className="w-1/4 top-20 h-fit">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">My Collabs</h2>
             <Link 

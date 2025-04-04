@@ -14,8 +14,8 @@ const {
 const router = express.Router();
 
 // Public routes
-router.get('/:id', getAdById);
 router.get('/user', protectRoute, getUserAds);
+router.get('/:id', getAdById);
 
 // Protected routes
 router.get('/', protectRoute, getAllAds);

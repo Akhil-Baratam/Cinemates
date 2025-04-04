@@ -63,11 +63,11 @@ const ExploreAds = () => {
         
         {/* Middle Column */}
         <div className="w-3/5 px-4">
-          <Ads filters={activeFilters} />
+          <Ads filters={activeFilters} />  
         </div>
         
         {/* Right Column */}
-        <div className="w-1/4 sticky top-20 h-fit">
+        <div className="w-1/4 top-20 h-fit">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">My Listings</h2>
             <Link 
