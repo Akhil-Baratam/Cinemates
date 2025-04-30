@@ -148,6 +148,16 @@ const onboardingSubmit = async (req, res) => {
 					coverImg
 			} = req.body;
 
+      // Add validation for required fields
+      if (!fullName || !username || !email || !password) {
+        return res.status(400).json({ error: "Full name, username, email, and password are required" });
+      }
+
+      // Add validation for empty strings
+      if (fullName.trim() === "" || username.trim() === "" || email.trim() === "" || password.trim() === "") {
+          return res.status(400).json({ error: "Full name, username, email, and password cannot be empty" });
+      }
+
 			const userId = req.user._id;
 			const user = await User.findById(userId);
 
@@ -174,7 +184,7 @@ const onboardingSubmit = async (req, res) => {
 								{ quality: 'auto:best' },
 								{ fetch_format: "auto" }
 						]
-				  }); 
+				  });
 					profileImgUrl = uploadedResponse.secure_url;
 			}
 
@@ -194,9 +204,31 @@ const onboardingSubmit = async (req, res) => {
 								{ quality: 'auto:best' },
 								{ fetch_format: "auto" }
 						]
-				  }); 
+				  });
 					coverImgUrl = uploadedResponse.secure_url;
 			}
+
+      // Check if username or email already exists (excluding the current user)
+      const existingUserByUsername = await User.findOne({ username, _id: { $ne: userId } });
+      if (existingUserByUsername) {
+          return res.status(400).json({ error: "Username is already taken" });
+      }
+
+      const existingUserByEmail = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUserByEmail) {
+          return res.status(400).json({ error: "Email is already taken" });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "Invalid email format" });
+      }
+
+      // Validate password length
+      if (password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long" });
+      }
 
 			const salt = await bcrypt.genSalt(10);
 			const hashedPassword = await bcrypt.hash(password, salt);

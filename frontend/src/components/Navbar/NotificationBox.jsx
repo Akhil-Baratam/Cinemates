@@ -37,6 +37,7 @@ const NotificationBox = React.memo(({ authUser }) => {
   }, [isOpen]);
 
   const { data: notifications, isLoading } = useNotifications();
+  const notificationCount = notifications?.length || 0;
 
   const { mutate: deleteNotification } = useMutation({
     mutationFn: async (notificationId) => {
@@ -70,12 +71,17 @@ const NotificationBox = React.memo(({ authUser }) => {
       <button
         ref={buttonRef}
         onClick={toggleDropdown}
-        className="p-2 rounded-full text-black hover:bg-gray-100 transition-colors duration-200"
+        className="p-2 rounded-full text-black hover:bg-gray-100 transition-colors duration-200 relative"
         aria-label="Notifications"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
         <Bell />
+        {notificationCount > 0 && (
+          <span className="absolute mt-1 -top-1 -right-1 bg-gray-800 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+            {notificationCount > 99 ? '99+' : notificationCount}
+          </span>
+        )}
       </button>
       <AnimatePresence>
         {isOpen && (

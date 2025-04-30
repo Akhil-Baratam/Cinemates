@@ -184,7 +184,7 @@ const { mutate: commentPost, isPending: isCommenting } = useMutation({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="bg-background rounded-lg border  overflow-hidden"
+      className="bg-card rounded-lg border overflow-hidden"
     >
       <div className="px-4 pt-4 pb-2 border-border">
         <div className="flex items-center space-x-3">
@@ -307,14 +307,6 @@ const { mutate: commentPost, isPending: isCommenting } = useMutation({
           >
             <FaRegComment className="w-4 h-4" />
             <span>({post.comments.length})</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.0 }}
-            whileTap={{ scale: 0.9 }}
-            className="flex items-center space-x-1 text-muted-foreground"
-          >
-            <BiRepost className="w-4 h-4" />
-            <span>Repost</span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.0 }}

@@ -8,7 +8,6 @@ const router = express.Router();
 router.post("/create", protectRoute, createCollab);
 router.delete("/delete/:id", protectRoute, deleteCollab);
 // router.post("/interest/:id", protectRoute, interestedCollab);
-// router.post("/comment/:id", protectRoute, commentOnCollab);
 router.get("/", protectRoute, getAllCollabs);
 // router.get("/interested/:id", protectRoute, getInterestedCollabs);
 router.get("/user", protectRoute, getUserCollabs);

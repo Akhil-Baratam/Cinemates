@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
+import { prefetchNotifications } from "../../hooks/useNotifications";
 
 const Navbar = () => {
   const queryClient = useQueryClient();
@@ -29,6 +30,14 @@ const Navbar = () => {
   const currentPath = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+
+  // Prefetch notifications when navbar loads
+  useEffect(() => {
+    if (authUser) {
+      prefetchNotifications(queryClient);
+    }
+  }, [authUser, queryClient]);
 
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
@@ -54,8 +63,6 @@ const Navbar = () => {
       toast.error(error.message || "Logout failed");
     },
   });
-
-  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   const handleLogout = useCallback(() => {
     logout();
@@ -91,13 +98,6 @@ const Navbar = () => {
     setIsMobileMenuOpen((prev) => !prev);
   }, []);
 
-  const prefetchNotifications = () => {
-    queryClient.prefetchQuery({
-      queryKey: ['notifications'],
-      queryFn: notificationsFetcher
-    });
-  };
-
   return (
     <ErrorBoundary fallback={<div>Something went wrong</div>}>
       <nav className="relative bg-white z-50 shadow-lg">
@@ -132,8 +132,9 @@ const Navbar = () => {
                       : ""
                   } hover:text-primary transition-colors duration-200`}
                 >
-                  <Link to="/rentorhelp/all">Rent/Help</Link>
+                  <Link to="/roh">Rent/Help</Link>
                 </li>
+                {!authUser && (
                 <li
                   className={`${
                     currentPath === "/contact"
@@ -143,6 +144,7 @@ const Navbar = () => {
                 >
                   <Link to="/contact">Contact</Link>
                 </li>
+                )}
               </ul>
             </div>
             <div className="hidden md:flex justify-center gap-2 items-center">
@@ -226,17 +228,19 @@ const Navbar = () => {
                   Explore Ads
                 </Link>
                 <Link
-                  to="/rentorhelp/all"
+                  to="/roh"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
                 >
                   Rent/Help
                 </Link>
-                <Link
-                  to="/contact"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
-                >
-                  Contact
-                </Link>
+                {!authUser && (
+                  <Link
+                    to="/contact"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+                  >
+                    Contact
+                  </Link>
+                )}
               </div>
               <div className="pt-4 pb-3 border-t border-gray-200">
                 <div className="flex items-center px-5">

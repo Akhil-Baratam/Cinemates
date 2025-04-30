@@ -19,6 +19,7 @@ import ExploreAds from "./pages/marketplace/ExploreAds";
 import ExploreCollabs from "./pages/collabs/ExploreCollabs";
 import NotificationPage from "./pages/notifications/NotificationPage";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
+import ExploreRoh from "./pages/roh/ExploreRoh";
 
 // Layout components
 const PublicLayout = ({ children }) => (
@@ -28,7 +29,7 @@ const PublicLayout = ({ children }) => (
 const AuthenticatedLayout = ({ children }) => (
   <div className="bg-white font-poppins min-h-screen">
     <Navbar />
-    <main className="container ">{children}</main>
+    <main className="">{children}</main>
   </div>
 );
 
@@ -146,6 +147,7 @@ function App() {
         <Route path="/ads/explore" element={<ProtectedRoute element={<ExploreAds />} />} />
         <Route path="/contact" element={<ProtectedRoute element={<Contact />} />} />
         <Route path="/notifications" element={<ProtectedRoute element={<NotificationPage />} />} />
+        <Route path="/roh" element={<ProtectedRoute element={<ExploreRoh />} />} />
 
         {/* Catch-all route - 404 page would be better than redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -42,6 +42,7 @@ app.use('/api/posts', require("./routes/postRoutes"));
 app.use('/api/collabs', require("./routes/collabRoutes"));
 app.use('/api/ads', require("./routes/adRoutes"));
 app.use('/api/notifications', require("./routes/notificationRoutes"));
+app.use('/api/roh', require("./routes/rohRoutes"));
 
 const port = process.env.PORT;
 
