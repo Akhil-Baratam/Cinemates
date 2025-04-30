@@ -73,7 +73,7 @@ const Posts = ({ feedType, username, userId }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6 bg-white dark:bg-gray-800 rounded-lg overflow-hidden"
+          className="space-y-6 bg-white rounded-lg overflow-hidden"
         >
           <AnimatePresence>
             {isLoading && (
@@ -92,30 +92,22 @@ const Posts = ({ feedType, username, userId }) => {
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center text-gray-500 dark:text-gray-400 p-8"
+                className="text-center text-gray-500 p-8"
               >
                 No posts available. Start the conversation!
               </motion.p>
             )}
 
             {!isLoading && data && (
-              <motion.div className="space-y-4">
+              <div className="space-y-4">
                 {data.pages.map((page, pageIndex) => (
                   <React.Fragment key={pageIndex}>
                     {page.posts.map((post) => (
-                      <motion.div
-                        key={post._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Post post={post} />
-                      </motion.div>
+                      <Post key={post._id} post={post} />
                     ))}
                   </React.Fragment>
                 ))}
-              </motion.div>
+              </div>
             )}
 
             {isFetchingNextPage && (
