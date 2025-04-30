@@ -313,14 +313,6 @@ const { mutate: commentPost, isPending: isCommenting } = useMutation({
             whileTap={{ scale: 0.9 }}
             className="flex items-center space-x-1 text-muted-foreground"
           >
-            <BiRepost className="w-4 h-4" />
-            <span>Repost</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.0 }}
-            whileTap={{ scale: 0.9 }}
-            className="flex items-center space-x-1 text-muted-foreground"
-          >
             <FaRegBookmark className="w-4 h-4" />
             <span>Save</span>
           </motion.button>

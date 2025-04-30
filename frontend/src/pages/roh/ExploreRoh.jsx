@@ -51,7 +51,7 @@ const ExploreRoh = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-screen-2xl mx-auto pt-16 px-4 sm:px-6 lg:px-8"
+      className="w-full mx-auto pt-16 px-4 sm:px-6 lg:px-8"
     >
       {/* Mobile Layout - Single Column */}
       <div className="lg:hidden space-y-6 mb-6">
