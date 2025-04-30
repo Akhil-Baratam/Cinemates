@@ -132,7 +132,7 @@ const Navbar = () => {
                       : ""
                   } hover:text-primary transition-colors duration-200`}
                 >
-                  <Link to="/rentorhelp/all">Rent/Help</Link>
+                  <Link to="/roh">Rent/Help</Link>
                 </li>
                 <li
                   className={`${
@@ -226,7 +226,7 @@ const Navbar = () => {
                   Explore Ads
                 </Link>
                 <Link
-                  to="/rentorhelp/all"
+                  to="/roh"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
                 >
                   Rent/Help

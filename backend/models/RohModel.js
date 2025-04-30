@@ -16,7 +16,7 @@ const rohSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
-      minlength: 10,
+      minlength: [10, 'Description must be at least 10 characters long.'],
       maxlength: 2000,
     },
 
