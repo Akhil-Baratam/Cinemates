@@ -33,6 +33,7 @@ const OnboardingForm = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [step, setStep] = useState(0)
+  const [errors, setErrors] = useState({})
 
   // Get the existing user data from React Query cache
   const existingUserData = queryClient.getQueryData(["authUser"])
@@ -76,6 +77,41 @@ const OnboardingForm = () => {
   }
 
   const handleNext = () => {
+    // Validation for Step 1 fields before proceeding
+    if (step === 0) {
+      const { fullName, username, email, password } = formData;
+      const newErrors = {};
+
+      if (!fullName.trim()) newErrors.fullName = "Full Name is required";
+      if (!username.trim()) newErrors.username = "Username is required";
+      // Keep existing username availability check logic in Step1 for real-time feedback
+      if (!email.trim()) {
+        newErrors.email = "Email is required";
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          newErrors.email = "Invalid email format";
+        }
+      }
+
+      if (!password.trim()) {
+         newErrors.password = "Password is required";
+       } else if (password.length < 6) {
+         newErrors.password = "Password must be at least 6 characters";
+       }
+
+       setErrors(newErrors);
+
+       // Prevent proceeding to the next step if errors exist
+       if (Object.keys(newErrors).length > 0) {
+         return;
+       }
+
+      // Note: Username availability check is still best handled within Step1
+      // for immediate feedback, but final check could happen here or on submit.
+      // We removed the toast errors for basic required fields.
+    }
+    // Step 1 validation complete or not step 0, proceed
     setStep((prev) => Math.min(prev + 1, 2))
   }
 
@@ -126,7 +162,24 @@ const OnboardingForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
+    // Final validation before submission
+    const { fullName, username, email, password } = formData;
+    if (!fullName || !username || !email || !password) {
+      toast.error("Please ensure Full Name, Username, Email, and Password are provided.");
+      return; // Prevent submission
+    }
+    // Add other necessary final checks if needed
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      return;
+    }
+
     // Remove empty fields before sending
     const sanitizedData = Object.fromEntries(
       Object.entries(formData).filter(([_, value]) => value !== "" && value !== null)
@@ -265,7 +318,7 @@ const OnboardingForm = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6 lg:pl-6">
-                  {step === 0 && <Step1 formData={formData} updateFormData={updateFormData} />}
+                  {step === 0 && <Step1 formData={formData} updateFormData={updateFormData} errors={errors} />}
                   {step === 1 && <Step2 formData={formData} updateFormData={updateFormData} />}
                   {step === 2 && <Step3 formData={formData} updateFormData={updateFormData} />}
                 </form>
