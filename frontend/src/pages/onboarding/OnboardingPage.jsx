@@ -34,6 +34,8 @@ const OnboardingForm = () => {
   const queryClient = useQueryClient()
   const [step, setStep] = useState(0)
   const [errors, setErrors] = useState({})
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true)
+  const [optionsLoaded, setOptionsLoaded] = useState(false)
 
   // Get the existing user data from React Query cache
   const existingUserData = queryClient.getQueryData(["authUser"])
@@ -71,6 +73,43 @@ const OnboardingForm = () => {
       }))
     }
   }, [existingUserData])
+
+  // Prefetch the options to ensure they're cached for the child components
+  useEffect(() => {
+    const prefetchOptions = async () => {
+      if (optionsLoaded) return;
+      
+      try {
+        setIsLoadingOptions(true);
+        // Use queryClient to prefetch the options
+        await queryClient.prefetchQuery({
+          queryKey: ['onboardingOptions'],
+          queryFn: async () => {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/onboarding/options`, {
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!response.ok) {
+              throw new Error("Failed to fetch onboarding options");
+            }
+            
+            return response.json();
+          },
+        });
+        setOptionsLoaded(true);
+      } catch (error) {
+        console.error("Error prefetching onboarding options:", error);
+      } finally {
+        setIsLoadingOptions(false);
+      }
+    };
+
+    prefetchOptions();
+  }, [optionsLoaded, queryClient]);
 
   const updateFormData = (newData) => {
     setFormData((prev) => ({ ...prev, ...newData }))

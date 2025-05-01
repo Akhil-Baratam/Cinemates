@@ -3,8 +3,31 @@ import { Input } from "../../components/ui/input"
 import { Checkbox } from "../../components/ui/checkbox"
 import { Button } from "../../components/ui/button"
 import { X } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
 
 const Step3 = ({ formData, updateFormData }) => {
+  const { data: options, isLoading } = useQuery({
+    queryKey: ['onboardingOptions'],
+    queryFn: async () => {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/onboarding/options`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch onboarding options");
+      }
+
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 10, // 10 minutes
+  });
+
   const handleMultiSelectChange = (name, value) => {
     const updatedValues = formData[name].includes(value)
       ? formData[name].filter((item) => item !== value)
@@ -27,45 +50,45 @@ const Step3 = ({ formData, updateFormData }) => {
     updateFormData({ [field]: newArray })
   }
 
+  if (isLoading) {
+    return <div className="text-center py-4">Loading options...</div>
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <Label className="text-sm font-medium">Interests</Label>
         <div className="grid grid-cols-3 gap-2">
-          {["Filmmaking", "Screenwriting", "Editing", "Cinematography", "Sound Design", "Production"].map(
-            (interest) => (
-              <div key={interest} className="flex items-center space-x-2">
-                <Checkbox
-                  id={interest}
-                  checked={formData.interests.includes(interest)}
-                  onCheckedChange={() => handleMultiSelectChange("interests", interest)}
-                />
-                <label htmlFor={interest} className="text-sm">
-                  {interest}
-                </label>
-              </div>
-            ),
-          )}
+          {options?.interests?.map((interest) => (
+            <div key={interest} className="flex items-center space-x-2">
+              <Checkbox
+                id={interest}
+                checked={formData.interests.includes(interest)}
+                onCheckedChange={() => handleMultiSelectChange("interests", interest)}
+              />
+              <label htmlFor={interest} className="text-sm">
+                {interest}
+              </label>
+            </div>
+          ))}
         </div>
       </div>
 
       <div className="space-y-2">
         <Label className="text-sm font-medium">Preferred Collaboration Types</Label>
         <div className="grid grid-cols-3 gap-2">
-          {["Short Films", "Documentaries", "Music Videos", "Feature Films", "Web Series", "Commercials"].map(
-            (type) => (
-              <div key={type} className="flex items-center space-x-2">
-                <Checkbox
-                  id={type}
-                  checked={formData.preferredCollabTypes.includes(type)}
-                  onCheckedChange={() => handleMultiSelectChange("preferredCollabTypes", type)}
-                />
-                <label htmlFor={type} className="text-sm">
-                  {type}
-                </label>
-              </div>
-            ),
-          )}
+          {options?.preferredCollabTypes?.map((type) => (
+            <div key={type} className="flex items-center space-x-2">
+              <Checkbox
+                id={type}
+                checked={formData.preferredCollabTypes.includes(type)}
+                onCheckedChange={() => handleMultiSelectChange("preferredCollabTypes", type)}
+              />
+              <label htmlFor={type} className="text-sm">
+                {type}
+              </label>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -92,7 +115,7 @@ const Step3 = ({ formData, updateFormData }) => {
       <div className="space-y-2">
         <Label className="text-sm font-medium">Equipment Owned</Label>
         <div className="grid grid-cols-3 gap-2">
-          {["Camera", "Lighting", "Sound", "Editing Software", "Drone", "Stabilizer"].map((equipment) => (
+          {options?.equipmentOwned?.map((equipment) => (
             <div key={equipment} className="flex items-center space-x-2">
               <Checkbox
                 id={equipment}

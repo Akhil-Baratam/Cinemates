@@ -28,6 +28,17 @@ import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 import { EllipsisVertical } from "lucide-react";
 import { toast } from "react-hot-toast";
 
+function getHostName(url) {
+  try {
+    const normalized = url.startsWith("http://") || url.startsWith("https://")
+      ? url
+      : `https://${url}`;
+    return new URL(normalized).hostname;
+  } catch {
+    return url;
+  }
+}
+
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
@@ -237,13 +248,17 @@ const ProfilePage = () => {
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                   {user?.link && (
                     <a
-                      href={user?.link}
+                      href={
+                        user.link.startsWith("http://") || user.link.startsWith("https://")
+                          ? user.link
+                          : `https://${user.link}`
+                      }
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center hover:text-primary transition-colors"
                     >
                       <FaLink className="w-4 h-4 mr-2" />
-                      {new URL(user?.link).hostname}
+                      {getHostName(user.link)}
                     </a>
                   )}
                   <div className="flex items-center">

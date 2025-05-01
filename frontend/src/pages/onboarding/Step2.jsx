@@ -2,8 +2,31 @@ import { Label } from "../../components/ui/label"
 import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Checkbox } from "../../components/ui/checkbox"
+import { useQuery } from "@tanstack/react-query"
 
 const Step2 = ({ formData, updateFormData }) => {
+  const { data: options, isLoading } = useQuery({
+    queryKey: ['onboardingOptions'],
+    queryFn: async () => {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/onboarding/options`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch onboarding options");
+      }
+
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 10, // 10 minutes
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target
     updateFormData({ [name]: value })
@@ -20,6 +43,10 @@ const Step2 = ({ formData, updateFormData }) => {
     updateFormData({ [name]: updatedValues })
   }
 
+  if (isLoading) {
+    return <div className="text-center py-4">Loading options...</div>
+  }
+
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -31,11 +58,11 @@ const Step2 = ({ formData, updateFormData }) => {
             <SelectValue placeholder="Select profession" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="director">Director</SelectItem>
-            <SelectItem value="editor">Editor</SelectItem>
-            <SelectItem value="actor">Actor</SelectItem>
-            <SelectItem value="cinematographer">Cinematographer</SelectItem>
-            <SelectItem value="producer">Producer</SelectItem>
+            {options?.professions?.map((profession) => (
+              <SelectItem key={profession} value={profession.toLowerCase()}>
+                {profession}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -49,9 +76,11 @@ const Step2 = ({ formData, updateFormData }) => {
             <SelectValue placeholder="Select experience level" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Beginner">Beginner</SelectItem>
-            <SelectItem value="Intermediate">Intermediate</SelectItem>
-            <SelectItem value="Professional">Professional</SelectItem>
+            {options?.experienceLevels?.map((level) => (
+              <SelectItem key={level} value={level}>
+                {level}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -59,7 +88,7 @@ const Step2 = ({ formData, updateFormData }) => {
       <div className="space-y-2 col-span-2">
         <Label className="text-sm font-medium">Skills</Label>
         <div className="grid grid-cols-3 gap-2">
-          {["Cinematography", "VFX", "Sound Editing", "Screenwriting", "Lighting", "Color Grading"].map((skill) => (
+          {options?.skills?.map((skill) => (
             <div key={skill} className="flex items-center space-x-2">
               <Checkbox
                 id={skill}
@@ -77,7 +106,7 @@ const Step2 = ({ formData, updateFormData }) => {
       <div className="space-y-2 col-span-2">
         <Label className="text-sm font-medium">Genres</Label>
         <div className="grid grid-cols-3 gap-2">
-          {["Action", "Drama", "Comedy", "Sci-Fi", "Horror", "Documentary"].map((genre) => (
+          {options?.genres?.map((genre) => (
             <div key={genre} className="flex items-center space-x-2">
               <Checkbox
                 id={genre}
