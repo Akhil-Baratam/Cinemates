@@ -1,6 +1,7 @@
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./contexts/AuthContext";
+import { ChatProvider } from "./contexts/ChatContext";
 import Navbar from "./components/Navbar/Navbar";
 import LoadingSpinner from "./components/LoadingSpinner";
 
@@ -29,7 +30,9 @@ const PublicLayout = ({ children }) => (
 const AuthenticatedLayout = ({ children }) => (
   <div className="bg-white font-poppins min-h-screen">
     <Navbar />
-    <main className="">{children}</main>
+    <ChatProvider>
+      <main className="">{children}</main>
+    </ChatProvider>
   </div>
 );
 
@@ -141,7 +144,7 @@ function App() {
         {/* Protected routes requiring completed onboarding */}
         <Route path="/posts" element={<ProtectedRoute element={<CommunityPosts />} />} />
         <Route path="/profile/:username" element={<ProtectedRoute element={<ProfilePage />} />} />
-        <Route path="/chat/:id" element={<ProtectedRoute element={<Chat />} />} />
+        <Route path="/chat" element={<ProtectedRoute element={<Chat />} />} />
         <Route path="/mates" element={<ProtectedRoute element={<DiscoverMates />} />} />
         <Route path="/collabs" element={<ProtectedRoute element={<ExploreCollabs />} />} />
         <Route path="/ads/explore" element={<ProtectedRoute element={<ExploreAds />} />} />

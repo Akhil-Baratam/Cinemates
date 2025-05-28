@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -24,13 +25,17 @@ import {
   Mail,
   MapPin,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import useFollow from "../hooks/useFollow";
 import LoadingSpinner from "./LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
+import { useChat } from "../contexts/ChatContext";
 
 const ProfileModal = ({ user, isOpen, onOpenChange }) => { 
   const {data: authUser} = useQuery({queryKey: ["authUser"]});
+  const navigate = useNavigate();
+  const { navigateToChat } = useChat();
 
   const [activeTab, setActiveTab] = useState("posts");
   const [isFollowing, setIsFollowing] = useState(false);
@@ -47,20 +52,37 @@ const ProfileModal = ({ user, isOpen, onOpenChange }) => {
 
   const handleFollowClick = async (e, userId) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
     setLoadingUserId(userId);
-    follow(userId, {
-      onSettled: () => {
-        setLoadingUserId(null);
-      },
-      onSuccess: () => {
-        setIsFollowing(!isFollowing);
+    
+    try {
+      await follow(userId);
+      
+      // Update the user object to reflect the follow status change
+      if (user && authUser) {
+        // Create a deep copy of the user object
+        const updatedUser = { ...user };
+        
         if (isFollowing) {
-          user.followers = user.followers.filter(id => id !== authUser._id);
+          // If currently following, remove authUser from followers
+          updatedUser.followers = updatedUser.followers.filter(id => id !== authUser._id);
         } else {
-          user.followers.push(authUser._id);
+          // If not following, add authUser to followers
+          updatedUser.followers = [...updatedUser.followers, authUser._id];
         }
-      },
-    });
+        
+        // Update the user prop to trigger re-render with correct state
+        user.followers = updatedUser.followers;
+      }
+      
+      // Toggle following state after successful follow/unfollow
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error("Error following/unfollowing user:", error);
+      toast.error("Failed to follow/unfollow user");
+    } finally {
+      setLoadingUserId(null);
+    }
   };
 
   if (!user) return null;
@@ -152,12 +174,23 @@ const ProfileModal = ({ user, isOpen, onOpenChange }) => {
                     {loadingUserId === user._id ? (
                       <LoadingSpinner size="sm" />
                     ) : (
-                      isFollowing ? "Unfollow" : "follow"
+                      isFollowing ? "Unfollow" : "Follow"
                     )}
                   </Button>
-                  <Button variant="outline" className="flex-1">
-                    Message
-                  </Button>
+                  {/* Only show Message button if the user is following this profile */}
+                  {isFollowing && (
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 flex items-center justify-center gap-2"
+                      onClick={() => {
+                        navigateToChat(user._id, navigate);
+                        onOpenChange(false); // Close the modal after clicking message
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Message
+                    </Button>
+                  )}
                 </div>
               </motion.div>
               <Tabs

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Tabs,
@@ -25,8 +25,9 @@ import EditProfileForm from "./EditProfileForm";
 
 import useFollow from "../../hooks/useFollow";
 import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, MessageSquare } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useChat } from "../../contexts/ChatContext";
 
 function getHostName(url) {
   try {
@@ -47,11 +48,13 @@ const ProfilePage = () => {
 
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
+  const navigate = useNavigate();
 
   const { username } = useParams();
 
   const { follow, isPending } = useFollow();
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const { navigateToChat } = useChat();
 
   const {
     data: user,
@@ -217,17 +220,30 @@ const ProfilePage = () => {
                       < EllipsisVertical className=" h-6 w-6 text-black " />
                       </div>
                   ) : (
-                    <button
-                      className="bg-primary text-primary-foreground rounded-full px-6 py-2 hover:bg-primary/90 transition"
-                      onClick={() => follow(user?._id)}
-                      disabled={isPending}
-                    >
-                      {isPending
-                        ? "Loading..."
-                        : amIFollowing
-                        ? "Unfollow"
-                        : "Follow"}
-                    </button>
+                    <>
+                      <button
+                        className="bg-primary text-primary-foreground rounded-full px-6 py-2 hover:bg-primary/90 transition"
+                        onClick={() => follow(user?._id)}
+                        disabled={isPending}
+                      >
+                        {isPending
+                          ? "Loading..."
+                          : amIFollowing
+                          ? "Unfollow"
+                          : "Follow"}
+                      </button>
+                      
+                      {/* Message button - only show if the user follows this person */}
+                      {amIFollowing && (
+                        <button
+                          className="flex items-center gap-1 bg-gray-100 text-gray-800 rounded-full px-6 py-2 hover:bg-gray-200 transition"
+                          onClick={() => navigateToChat(user?._id, navigate)}
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          Message
+                        </button>
+                      )}
+                    </>
                   )}
                   {(coverImg || profileImg) && (
                     <button

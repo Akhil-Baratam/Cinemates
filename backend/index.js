@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 var cloudinary = require('cloudinary').v2;
 const bodyParser = require('body-parser');
+const http = require('http');
+const { initializeSocket } = require('./socket');
 
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 console.log(process.env.PORT);
@@ -17,6 +19,10 @@ cloudinary.config({
 });
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io
+initializeSocket(server);
 
 // CORS configuration
 app.use(cors({
@@ -45,12 +51,16 @@ app.use('/api/notifications', require("./routes/notificationRoutes"));
 app.use('/api/roh', require("./routes/rohRoutes"));
 app.use('/api/onboarding', require("./routes/onboardingRoutes"));
 
-const port = process.env.PORT;
+// Chat routes
+app.use('/api/chat', require("./routes/chatRoutes"));
+app.use('/api/message', require("./routes/messageRoutes"));
+
+const port = process.env.PORT || 3000;
 
 const startServer = async () => {
     try {
         await connectMongoDB();
-        app.listen(port, () => {
+        server.listen(port, () => {
             console.log(`Server is running on port: ${port}`);
         });
     } catch (error) {

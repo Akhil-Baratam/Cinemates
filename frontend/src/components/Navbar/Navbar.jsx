@@ -70,7 +70,7 @@ const Navbar = () => {
 
   const socialLinks = useMemo(
     () => [
-      { name: "Chats", link: "/chat/mychats" },
+      { name: "Chats", link: "/chat" },
       { name: "Community Posts", link: "/posts" },
       { name: "Discover mates", link: "/mates" },
     ],
@@ -198,7 +198,7 @@ const Navbar = () => {
             >
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <Link
-                  to="/chat/mychats"
+                  to="/chat"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
                 >
                   Chats
