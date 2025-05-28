@@ -10,22 +10,25 @@ router.post("/follow/:id", protectRoute , followUnfollowUser);
 router.get("/suggestedusers", protectRoute, getSuggestedUsers);
 router.post("/update", protectRoute , updateUser);
 
-router.get("/check-username", async (req, res) => {
+// Check username availability, allowing current user to keep their username
+router.get("/check-username", protectRoute, async (req, res) => {
   try {
     const { username } = req.query;
-    
+
     if (!username || username.length < 3) {
-      return res.status(400).json({ 
-        error: "Username must be at least 3 characters long" 
-      });
+      return res.status(400).json({ error: "Username must be at least 3 characters long" });
     }
-    
-    // Check if the username exists in the database
+
+    // Find if any user has this username
     const existingUser = await User.findOne({ username });
-    
-    return res.status(200).json({
-      available: !existingUser
-    });
+    let available = true;
+    if (existingUser) {
+      // If the found user is not the current user, it's taken
+      if (existingUser._id.toString() !== req.user._id.toString()) {
+        available = false;
+      }
+    }
+    return res.status(200).json({ available });
   } catch (error) {
     console.error("Error checking username availability:", error);
     return res.status(500).json({ error: "Internal server error" });

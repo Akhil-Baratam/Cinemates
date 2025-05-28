@@ -22,11 +22,23 @@ const signup = async (req, res) => {
 			return res.status(400).json({ error: "Password must be at least 6 characters long" });
 		}
 
+		// Generate unique username from email
+		const baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+		let username = baseUsername;
+		let counter = 1;
+
+		// Check if username exists and increment counter if needed
+		while (await User.findOne({ username })) {
+			username = `${baseUsername}${counter}`;
+			counter++;
+		}
+
 		const salt = await bcrypt.genSalt(10);
 		const hashedPassword = await bcrypt.hash(password, salt);
 
 		const newUser = new User({
 			email,
+			username, // Add the generated username
 			password: hashedPassword,
 		}); 
 
@@ -37,6 +49,7 @@ const signup = async (req, res) => {
 			res.status(201).json({
 				_id: newUser._id,
 				email: newUser.email,
+				username: newUser.username, // Include username in response
 			});
 		} else {
 			res.status(400).json({ error: "Invalid user data" });
