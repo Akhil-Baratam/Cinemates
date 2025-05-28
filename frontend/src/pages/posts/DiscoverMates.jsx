@@ -166,9 +166,9 @@ const DiscoverMates = () => {
               <CardContent onClick={() => handleUserClick(user)} className="p-4 flex flex-col items-center">
                 <Avatar className="w-24 h-24 mb-4">
                   <AvatarImage src={user.profileImg} alt={user.fullName} />
-                  <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{(user.fullName || user.username || user.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <h3 className="font-semibold text-lg">{user.fullName}</h3>
+                <h3 className="font-semibold text-lg">{user.fullName || user.username || 'Unknown User'}</h3>
                 <p className="text-sm text-gray-500 mb-4">@{user.username}</p>
               </CardContent>
               <CardFooter>
