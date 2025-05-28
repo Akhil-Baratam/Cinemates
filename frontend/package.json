@@ -39,6 +39,7 @@
     "dotenv": "^16.4.5",
     "emoji-picker-react": "^4.12.0",
     "framer-motion": "^11.3.31",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.436.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -19,26 +19,92 @@ const UserSearchSelect = ({ selectedUsers, setSelectedUsers }) => {
     
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users?search=${query}`, {
+      
+      // Get all users we've chatted with
+      const chatResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/api/chat`, {
         credentials: "include",
         headers: {
           "Accept": "application/json",
         }
       });
       
-      if (!response.ok) {
-        throw new Error("Failed to search users");
+      let chatUsers = [];
+      if (chatResponse.ok) {
+        const chats = await chatResponse.json();
+        // Extract all users from chats
+        chatUsers = chats.flatMap(chat => chat.users || []);
       }
       
-      const data = await response.json();
+      // Get current user profile to get following list
+      const profileResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/profile/${authUser.username}`, {
+        credentials: "include",
+        headers: {
+          "Accept": "application/json",
+        }
+      });
       
-      // Filter out the current user and already selected users
-      const filteredUsers = data.filter(user => 
-        user._id !== authUser?._id && 
-        !selectedUsers.some(selectedUser => selectedUser._id === user._id)
+      let followingUsers = [];
+      if (profileResponse.ok) {
+        const userProfile = await profileResponse.json();
+        
+        // If we have following IDs, fetch those users directly from our chat users
+        // or try to find them by username that matches our search query
+        if (userProfile.following && userProfile.following.length > 0) {
+          // Get users from chat that match following IDs
+          const followingIds = userProfile.following;
+          
+          // Find users from chat that match our following IDs
+          const matchingChatUsers = chatUsers.filter(user => 
+            followingIds.includes(user._id)
+          );
+          
+          followingUsers = matchingChatUsers;
+          
+          // Also try to find users by searching their profiles directly
+          // This is a workaround since we don't have a direct API to get users by ID
+          if (query.length >= 3) {
+            // Try to find users by username that match our query
+            // We'll search for users we follow by trying their username
+            const searchByUsername = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/profile/${query}`, {
+              credentials: "include",
+              headers: {
+                "Accept": "application/json",
+              }
+            }).catch(() => ({ ok: false })); // Catch 404 errors
+            
+            if (searchByUsername.ok) {
+              const foundUser = await searchByUsername.json();
+              // Check if this user is in our following list and not already in results
+              if (foundUser && 
+                  followingIds.includes(foundUser._id) && 
+                  !followingUsers.some(u => u._id === foundUser._id)) {
+                followingUsers.push(foundUser);
+              }
+            }
+          }
+        }
+      }
+      
+      // Combine all users
+      const allUsers = [...chatUsers, ...followingUsers];
+      
+      // Remove duplicates
+      const uniqueUsers = Array.from(
+        new Map(allUsers.map(user => [user._id, user])).values()
       );
       
-      setSearchResults(filteredUsers);
+      // Filter results to match search term
+      const matchingUsers = uniqueUsers.filter(user => 
+        // Exclude current user
+        user._id !== authUser?._id && 
+        // Exclude already selected users
+        !selectedUsers.some(selectedUser => selectedUser._id === user._id) &&
+        // Match search term against name or username
+        (user.fullName?.toLowerCase().includes(query.toLowerCase()) || 
+         user.username?.toLowerCase().includes(query.toLowerCase()))
+      );
+      
+      setSearchResults(matchingUsers);
     } catch (error) {
       console.error("Search users error:", error);
       setSearchResults([]);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, MoreVertical, Users, Phone, Video } from "lucide-react";
+import { X, MoreVertical, Users, Phone, Video, Info, ChevronLeft } from "lucide-react";
 import { useChat } from "../../../../../contexts/ChatContext";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../../../components/ui/avatar";
@@ -11,7 +11,7 @@ import {
 } from "../../../../../components/ui/dropdown-menu";
 import GroupInfoModal from "./GroupInfoModal";
 
-const ChatHeader = () => {
+const ChatHeader = ({ onInfoClick, isDetailsPanelOpen, onBackClick, isMobileView }) => {
   const { selectedChat, setSelectedChat, onlineUsers } = useChat();
   const { authUser } = useAuth();
   const [isGroupInfoOpen, setIsGroupInfoOpen] = useState(false);
@@ -29,6 +29,15 @@ const ChatHeader = () => {
   return (
     <div className='h-[8vh] border-b-2 border-[#bdbaba] flex items-center justify-between px-4 md:px-6'>
       <div className='flex gap-3 items-center'>
+        {isMobileView && (
+          <button 
+            className="text-gray-500 hover:text-gray-700 focus:outline-none mr-1"
+            onClick={onBackClick}
+            aria-label="Back to contacts"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
         <Avatar className="h-10 w-10">
           <AvatarImage src={chatImage} alt={chatName} />
           <AvatarFallback>{chatName?.charAt(0) || "?"}</AvatarFallback>
@@ -50,6 +59,14 @@ const ChatHeader = () => {
       </div>
       
       <div className='flex items-center gap-3'>
+        <button 
+          className={`text-gray-500 hover:text-gray-700 focus:outline-none ${isDetailsPanelOpen ? 'text-primary' : ''}`}
+          onClick={onInfoClick}
+          aria-label="Toggle details panel"
+        >
+          <Info className="h-5 w-5" />
+        </button>
+        
         {!selectedChat.isGroupChat && (
           <>
             <button className="text-gray-500 hover:text-gray-700 focus:outline-none">

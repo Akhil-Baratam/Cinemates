@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import ChatHeader from "./components/ChatHeader";
 import MessageBar from "./components/MessageBar";
 import MessageContainer from "./components/MessageContainer";
+import ChatDetailsPanel from "../details/ChatDetailsPanel";
 import { useChat } from "../../../../contexts/ChatContext";
 import { useQuery } from "@tanstack/react-query";
+import { Info, X } from "lucide-react";
+import { Button } from "../../../../components/ui/button";
 
-const ChatContainer = () => {
+const ChatContainer = ({ onBackClick, isMobileView }) => {
   const { selectedChat, joinChatRoom } = useChat();
   const [isMobile, setIsMobile] = useState(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   
   // Fetch messages for the selected chat
   const { data: messages = [], isLoading } = useQuery({
@@ -56,11 +61,36 @@ const ChatContainer = () => {
     };
   }, []);
   
+  // Toggle details panel
+  const toggleDetailsPanel = () => {
+    setIsDetailsPanelOpen(prev => !prev);
+  };
+
+  // Close details panel (for mobile)
+  const closeDetailsPanel = () => {
+    setIsDetailsPanelOpen(false);
+  };
+
   return (
-    <div className="flex flex-col h-full justify-between w-[100vw] md:static md:flex-1">
-      <ChatHeader />
-      <MessageContainer messages={messages} isLoading={isLoading} />
-      <MessageBar chatId={selectedChat?._id} />
+    <div className="flex h-full w-full md:static overflow-hidden">
+      <div className={`flex flex-col h-full justify-between ${isMobile && isDetailsPanelOpen ? 'hidden' : 'flex-1'} min-w-0`}>
+        <ChatHeader 
+          onInfoClick={toggleDetailsPanel} 
+          isDetailsPanelOpen={isDetailsPanelOpen} 
+          onBackClick={onBackClick}
+          isMobileView={isMobileView}
+        />
+        <MessageContainer messages={messages} isLoading={isLoading} />
+        <MessageBar chatId={selectedChat?._id} />
+      </div>
+      
+      <AnimatePresence>
+        {isDetailsPanelOpen && (
+          <div className={`${isMobile ? 'absolute inset-0 z-50' : 'w-[280px] lg:w-[320px] flex-shrink-0'}`}>
+            <ChatDetailsPanel onClose={closeDetailsPanel} isMobile={isMobile} />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

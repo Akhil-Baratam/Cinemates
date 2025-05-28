@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 import CreateGroupModal from './CreateGroupModal';
 import { cn } from '../../../../lib/utils';
 
-const ContactsContainer = () => {
+const ContactsContainer = ({ onSelectChat }) => {
   const { chats, chatsLoading, setSelectedChat, selectedChat, onlineUsers, refetchChats } = useChat();
   const { authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +35,14 @@ const ContactsContainer = () => {
     
     return () => clearInterval(intervalId);
   }, [refetchChats]);
+  
+  // Handle chat selection with callback for mobile view
+  const handleChatSelect = (chat) => {
+    setSelectedChat(chat);
+    if (onSelectChat) {
+      onSelectChat();
+    }
+  };
   
   // Filter chats based on search term
   const filteredChats = chats?.filter(chat => {
@@ -71,7 +79,7 @@ const ContactsContainer = () => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className='relative w-[40vw] lg:w-[30vw] xl:w-[25vw] border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-950 h-full'
+      className='relative w-full md:w-[40vw] lg:w-[30vw] xl:w-[25vw] border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-950 h-full'
     >
       {/* Header with search */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-800">
@@ -107,23 +115,22 @@ const ContactsContainer = () => {
       {/* Chat list */}
       <div className="flex-1 overflow-y-auto">
         <Tabs value={activeTab} className="w-full">
-          <TabsContent value="direct" className="m-0 p-0">
-            <AnimatePresence mode="wait">
+          <TabsContent value="direct" className="mt-0">
+            <AnimatePresence>
               <motion.div
-                key="direct-messages"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                className="flex flex-col"
               >
                 {directMessages.length > 0 ? (
-                  directMessages.map((chat) => (
+                  directMessages.map(chat => (
                     <ChatItem 
                       key={chat._id}
                       chat={chat}
                       isDirectMessage={true}
                       isSelected={selectedChat?._id === chat._id}
-                      onSelect={() => setSelectedChat(chat)}
+                      onSelect={() => handleChatSelect(chat)}
                       authUser={authUser}
                       onlineUsers={onlineUsers}
                     />
@@ -132,7 +139,7 @@ const ContactsContainer = () => {
                   <EmptyState 
                     icon={<MessageSquare className="h-12 w-12 text-gray-300" />}
                     title="No direct messages"
-                    description="Start a conversation by visiting someone's profile and clicking the message button."
+                    description="Start a conversation with someone to see it here."
                   />
                 )}
               </motion.div>
@@ -140,7 +147,7 @@ const ContactsContainer = () => {
           </TabsContent>
           
           <TabsContent value="groups" className="m-0 p-0">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.div
                 key="group-chats"
                 initial={{ opacity: 0 }}
@@ -166,13 +173,13 @@ const ContactsContainer = () => {
                 </motion.div>
                 
                 {groupChats.length > 0 ? (
-                  groupChats.map((chat) => (
+                  groupChats.map(chat => (
                     <ChatItem 
                       key={chat._id}
                       chat={chat}
                       isDirectMessage={false}
                       isSelected={selectedChat?._id === chat._id}
-                      onSelect={() => setSelectedChat(chat)}
+                      onSelect={() => handleChatSelect(chat)}
                       authUser={authUser}
                       onlineUsers={onlineUsers}
                     />

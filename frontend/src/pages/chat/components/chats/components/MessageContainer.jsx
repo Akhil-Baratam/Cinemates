@@ -27,7 +27,7 @@ const MessageContainer = ({ messages = [], isLoading }) => {
   return (
     <div 
       ref={scrollRef}
-      className='flex-1 overflow-y-auto scrollbar-hidden p-4 px-8 md:w-[65vw] lg:w-[70vw] xl:w-[80vw] w-full'
+      className='flex-1 overflow-y-auto scrollbar-hidden p-4 px-4 md:px-6 w-full'
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
