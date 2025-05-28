@@ -19,9 +19,29 @@ import { cn } from '../../../../lib/utils';
 const ContactsContainer = ({ onSelectChat }) => {
   const { chats, chatsLoading, setSelectedChat, selectedChat, onlineUsers, refetchChats } = useChat();
   const { authUser } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => {
+    // Initialize search term from localStorage if available
+    return localStorage.getItem('contacts_search_term') || '';
+  });
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('direct');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Initialize from localStorage if available
+    return localStorage.getItem('contacts_active_tab') || 'direct';
+  });
+  
+  // Save active tab to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('contacts_active_tab', activeTab);
+  }, [activeTab]);
+  
+  // Save search term to localStorage when it changes
+  useEffect(() => {
+    if (searchTerm) {
+      localStorage.setItem('contacts_search_term', searchTerm);
+    } else {
+      localStorage.removeItem('contacts_search_term');
+    }
+  }, [searchTerm]);
   
   // Force refresh chats when component mounts and periodically
   useEffect(() => {

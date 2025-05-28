@@ -6,7 +6,14 @@ import { toast } from 'react-hot-toast';
 
 const MessageBar = ({ chatId }) => {
   const emojiRef = useRef();
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(() => {
+    // Initialize message from localStorage if available
+    if (chatId) {
+      const savedMessage = localStorage.getItem(`draft_message_${chatId}`);
+      return savedMessage || '';
+    }
+    return '';
+  });
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +32,25 @@ const MessageBar = ({ chatId }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [emojiRef]);
+  
+  // Load saved draft when chatId changes
+  useEffect(() => {
+    if (chatId) {
+      const savedMessage = localStorage.getItem(`draft_message_${chatId}`);
+      if (savedMessage) {
+        setMessage(savedMessage);
+      } else {
+        setMessage('');
+      }
+    }
+  }, [chatId]);
+  
+  // Save draft message to localStorage
+  useEffect(() => {
+    if (chatId && message) {
+      localStorage.setItem(`draft_message_${chatId}`, message);
+    }
+  }, [message, chatId]);
   
   // Handle typing indicator with debounce
   useEffect(() => {
@@ -67,8 +93,9 @@ const MessageBar = ({ chatId }) => {
         attachments 
       });
       
-      // Clear message and attachments after sending
+      // Clear message, localStorage draft, and attachments after sending
       setMessage('');
+      localStorage.removeItem(`draft_message_${chatId}`);
       setAttachments([]);
       stopTyping(chatId);
     } catch (error) {

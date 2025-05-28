@@ -226,11 +226,9 @@ const ChatDetailsPanel = ({ onClose, isMobile }) => {
     >
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
         <h2 className="font-semibold">Details</h2>
-        {isMobile && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close details panel">
+          <X className="h-4 w-4" />
+        </Button>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">

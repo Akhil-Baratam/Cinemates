@@ -12,12 +12,23 @@ export const ChatProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const { authUser } = useAuth();
   
-  const [selectedChat, setSelectedChat] = useState(null);
+  // Initialize selectedChat from localStorage if available
+  const [selectedChat, setSelectedChatState] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  
+  // Custom setter for selectedChat that also updates localStorage
+  const setSelectedChat = useCallback((chat) => {
+    setSelectedChatState(chat);
+    if (chat) {
+      localStorage.setItem('selectedChatId', chat._id);
+    } else {
+      localStorage.removeItem('selectedChatId');
+    }
+  }, []);
 
   // Initialize socket connection
   useEffect(() => {
@@ -117,6 +128,19 @@ export const ChatProvider = ({ children }) => {
     enabled: !!authUser,
     staleTime: 1000 * 60 * 1, // 1 minute
   });
+  
+  // Load selected chat from localStorage when chats are available
+  useEffect(() => {
+    if (authUser && chats?.length > 0 && !selectedChat) {
+      const savedChatId = localStorage.getItem('selectedChatId');
+      if (savedChatId) {
+        const savedChat = chats.find(chat => chat._id === savedChatId);
+        if (savedChat) {
+          setSelectedChatState(savedChat); // Use direct state setter to avoid infinite loop
+        }
+      }
+    }
+  }, [authUser, chats, selectedChat]);
 
   // Fetch messages for a specific chat
   const fetchMessages = useCallback((chatId) => {
