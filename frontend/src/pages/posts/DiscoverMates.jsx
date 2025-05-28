@@ -72,28 +72,10 @@ const DiscoverMates = () => {
 
   const handleFollowClick = async (e, userId) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
     setLoadingUserId(userId);
-    
     follow(userId, {
-      onSuccess: () => {
-        // If we have a selected user and it's the one we just followed, update it
-        if (selectedUser && selectedUser._id === userId) {
-          // Create a deep copy of the selected user
-          const updatedUser = { ...selectedUser };
-          
-          // Add the current user to followers if not already there
-          if (!updatedUser.followers.includes(userId)) {
-            updatedUser.followers.push(userId);
-          }
-          
-          // Update the selected user to trigger re-render with correct state
-          setSelectedUser(updatedUser);
-        }
-      },
       onSettled: () => {
         setLoadingUserId(null);
-        // Don't close the modal or refresh the list immediately
       },
     });
   };

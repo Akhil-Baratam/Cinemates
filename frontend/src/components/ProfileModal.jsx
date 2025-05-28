@@ -52,37 +52,44 @@ const ProfileModal = ({ user, isOpen, onOpenChange }) => {
 
   const handleFollowClick = async (e, userId) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation(); // Stop event bubbling
     setLoadingUserId(userId);
     
-    try {
-      await follow(userId);
-      
-      // Update the user object to reflect the follow status change
-      if (user && authUser) {
-        // Create a deep copy of the user object
-        const updatedUser = { ...user };
-        
-        if (isFollowing) {
-          // If currently following, remove authUser from followers
-          updatedUser.followers = updatedUser.followers.filter(id => id !== authUser._id);
-        } else {
-          // If not following, add authUser to followers
-          updatedUser.followers = [...updatedUser.followers, authUser._id];
+    // Use the follow function with callbacks instead of await
+    follow(userId, {
+      onSuccess: () => {
+        // Update the user object to reflect the follow status change
+        if (user && authUser) {
+          // Create a deep copy of the user object
+          const updatedUser = { ...user };
+          
+          if (isFollowing) {
+            // If currently following, remove authUser from followers
+            updatedUser.followers = updatedUser.followers.filter(id => id !== authUser._id);
+          } else {
+            // If not following, add authUser to followers
+            if (!updatedUser.followers.includes(authUser._id)) {
+              updatedUser.followers = [...updatedUser.followers, authUser._id];
+            }
+          }
+          
+          // Update the user prop to trigger re-render with correct state
+          user.followers = updatedUser.followers;
         }
         
-        // Update the user prop to trigger re-render with correct state
-        user.followers = updatedUser.followers;
+        // Toggle following state after successful follow/unfollow
+        setIsFollowing(!isFollowing);
+        
+        // If we're in a modal, make sure it stays open
+        if (onOpenChange) {
+          // Force the modal to stay open by setting it to true
+          onOpenChange(true);
+        }
+      },
+      onSettled: () => {
+        setLoadingUserId(null);
       }
-      
-      // Toggle following state after successful follow/unfollow
-      setIsFollowing(!isFollowing);
-    } catch (error) {
-      console.error("Error following/unfollowing user:", error);
-      toast.error("Failed to follow/unfollow user");
-    } finally {
-      setLoadingUserId(null);
-    }
+    });
   };
 
   if (!user) return null;
