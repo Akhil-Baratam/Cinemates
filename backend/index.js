@@ -50,6 +50,7 @@ app.use('/api/ads', require("./routes/adRoutes"));
 app.use('/api/notifications', require("./routes/notificationRoutes"));
 app.use('/api/roh', require("./routes/rohRoutes"));
 app.use('/api/onboarding', require("./routes/onboardingRoutes"));
+app.use('/api/filters', require("./routes/filterRoutes"));
 
 // Chat routes
 app.use('/api/chat', require("./routes/chatRoutes"));

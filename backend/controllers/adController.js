@@ -200,32 +200,81 @@ const getAllAds = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Build filter object
-    const filters = {};
-    if (req.query.category && req.query.category !== 'all') filters.category = req.query.category;
-    if (req.query.condition && req.query.condition !== 'all') filters.condition = req.query.condition;
-    if (req.query.location && req.query.location !== 'all') filters.location = req.query.location;
-    if (req.query.maxPrice && req.query.maxPrice !== '') filters.price = { $lte: parseInt(req.query.maxPrice) };
-    if (req.query.minPrice && req.query.minPrice !== '') {
-      filters.price = { ...filters.price, $gte: parseInt(req.query.minPrice) };
-    }
-    filters.status = req.query.status || "available"; // Default to available ads
+    // Extract filter parameters from query
+    const { 
+      category, 
+      subcategory,
+      minPrice, 
+      maxPrice, 
+      condition,
+      status,
+      location,
+      sortBy
+    } = req.query;
 
-    // Get ads with filters and pagination
-    const ads = await Ad.find(filters)
-      .sort({ createdAt: -1 })
+    // Build query object
+    const query = {};
+
+    // Apply category filter
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+
+    // Apply subcategory filter
+    if (subcategory && subcategory !== 'all') {
+      query.subcategory = { $in: [subcategory] };
+    }
+
+    // Apply price range filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // Apply condition filter
+    if (condition && condition !== 'all') {
+      query.condition = condition;
+    }
+
+    // Apply status filter
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    // Apply location filter
+    if (location && location !== 'all') {
+      query.location = { $regex: location, $options: 'i' };
+    }
+
+    // Build sort options
+    let sortOptions = { createdAt: -1 }; // Default: newest first
+    
+    if (sortBy === 'price-low-high') {
+      sortOptions = { price: 1 };
+    } else if (sortBy === 'price-high-low') {
+      sortOptions = { price: -1 };
+    } else if (sortBy === 'most-viewed') {
+      sortOptions = { views: -1 };
+    }
+
+    console.log('Applying ad filters:', query);
+    console.log('Sort options:', sortOptions);
+
+    const ads = await Ad.find(query)
+      .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .populate("user", "-password");
 
     // Get total count for pagination
-    const total = await Ad.countDocuments(filters);
+    const totalAds = await Ad.countDocuments(query);
+    const hasMore = skip + ads.length < totalAds;
 
     res.status(200).json({
       ads,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      totalAds: total,
+      hasMore,
+      nextPage: hasMore ? page + 1 : null,
     });
   } catch (error) {
     console.error("Error in getAllAds:", error);

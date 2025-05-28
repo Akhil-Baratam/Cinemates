@@ -102,8 +102,59 @@ const getAllCollabs = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const collabs = await Collab.find()
-      .sort({ createdAt: -1 })
+    // Extract filter parameters from query
+    const { 
+      projectType, 
+      genre, 
+      paymentStatus,
+      location, 
+      requiredRole, 
+      sortBy 
+    } = req.query;
+
+    // Build query object
+    const query = {};
+
+    // Apply project type filter
+    if (projectType && projectType !== 'all') {
+      query.projectType = projectType;
+    }
+
+    // Apply genre filter
+    if (genre && genre !== 'all') {
+      query.genres = { $in: [genre] };
+    }
+
+    // Apply payment status filter
+    if (paymentStatus && paymentStatus !== 'all') {
+      query.isPaid = paymentStatus === 'paid';
+    }
+
+    // Apply location filter
+    if (location && location !== 'all') {
+      query.location = { $regex: location, $options: 'i' };
+    }
+
+    // Apply required role filter
+    if (requiredRole && requiredRole !== 'all') {
+      query.requiredCraftsmen = { $in: [requiredRole] };
+    }
+
+    // Build sort options
+    let sortOptions = { createdAt: -1 }; // Default: newest first
+    
+    if (sortBy === 'deadline-soon') {
+      sortOptions = { deadline: 1 };
+    } else if (sortBy === 'most-popular') {
+      // For popularity, we could use the number of join requests
+      sortOptions = { 'joinRequests.length': -1 };
+    }
+
+    console.log('Applying filters:', query);
+    console.log('Sort options:', sortOptions);
+
+    const collabs = await Collab.find(query)
+      .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .populate({
@@ -111,7 +162,7 @@ const getAllCollabs = async (req, res) => {
         select: "-password",
       });
 
-    const totalCollabs = await Collab.countDocuments();
+    const totalCollabs = await Collab.countDocuments(query);
     const hasMore = skip + collabs.length < totalCollabs;
 
     res.status(200).json({

@@ -122,32 +122,97 @@ const getAllRohs = async (req, res) => {
   console.log("--- getAllRohs Request Received ---");
   console.log("Request Query:", req.query);
   try {
-    const { category, location, isForHelp, status, page = 1, limit = 10 } = req.query;
-    const filters = {};
+    const { 
+      category, 
+      department,
+      type, // for-rent or for-help
+      status, 
+      location, 
+      minPrice,
+      maxPrice,
+      rating,
+      sortBy,
+      page = 1, 
+      limit = 10 
+    } = req.query;
+    
+    // Build query object
+    const query = {};
 
-    if (category) filters.category = category;
-    if (location) filters.location = { $regex: location, $options: 'i' }; // Case-insensitive search for location
-    if (status) filters.status = status;
-    if (isForHelp !== undefined) filters.isForHelp = isForHelp === "true";
+    // Apply category filter
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+    
+    // Apply department filter
+    if (department && department !== 'all') {
+      query.department = department;
+    }
+
+    // Apply type filter (for-rent or for-help)
+    if (type === 'for-rent') {
+      query.isForHelp = false;
+    } else if (type === 'for-help') {
+      query.isForHelp = true;
+    }
+    
+    // Apply status filter
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    // Apply location filter
+    if (location && location !== 'all') {
+      query.location = { $regex: location, $options: 'i' }; // Case-insensitive search
+    }
+    
+    // Apply price range filter (for rentals)
+    if (type !== 'for-help' && (minPrice || maxPrice)) {
+      query.rentPrice = {};
+      if (minPrice) query.rentPrice.$gte = Number(minPrice);
+      if (maxPrice) query.rentPrice.$lte = Number(maxPrice);
+    }
+    
+    // Apply rating filter
+    if (rating && rating !== 'all') {
+      query.averageRating = { $gte: Number(rating) };
+    }
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    console.log("Applying filters:", filters);
+    // Build sort options
+    let sortOptions = { createdAt: -1 }; // Default: newest first
+    
+    if (sortBy === 'price-low-high') {
+      sortOptions = { rentPrice: 1 };
+    } else if (sortBy === 'price-high-low') {
+      sortOptions = { rentPrice: -1 };
+    } else if (sortBy === 'highest-rated') {
+      sortOptions = { averageRating: -1 };
+    }
+
+    console.log("Applying filters:", query);
+    console.log("Sort options:", sortOptions);
     console.log(`Fetching RoH items page ${pageNum}, limit ${limitNum}`);
 
-    const rohs = await Roh.find(filters)
+    const rohs = await Roh.find(query)
       .populate("user", "username profileImg")
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
       .skip(skip)
       .limit(limitNum);
 
-    const total = await Roh.countDocuments(filters);
+    const total = await Roh.countDocuments(query);
     const hasMore = skip + rohs.length < total;
 
     console.log(`Found ${rohs.length} items, Total matching: ${total}, HasMore: ${hasMore}`);
-    res.status(200).json({ success: true, data: rohs, hasMore, currentPage: pageNum, totalPages: Math.ceil(total / limitNum) });
+    res.status(200).json({ 
+      success: true, 
+      data: rohs, 
+      hasMore, 
+      nextPage: hasMore ? pageNum + 1 : null 
+    });
 
   } catch (err) {
     return sendError(res, 500, "Failed to fetch RoH items", err);
