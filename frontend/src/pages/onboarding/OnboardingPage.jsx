@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, Check, User, Briefcase, Settings } from "lucide-react"
+import { ArrowLeft, Check, User, Briefcase, Settings, Loader2 } from "lucide-react"
 import { cn } from "../../lib/utils"
 import Step1 from "./Step1"
 import Step2 from "./Step2"
 import Step3 from "./Step3"
-import { toast } from "react-hot-toast"
+import { useToast } from "../../hooks/use-toast"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient, useMutation } from "@tanstack/react-query"
 
@@ -32,6 +32,7 @@ const steps = [
 const OnboardingForm = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [step, setStep] = useState(0)
   const [errors, setErrors] = useState({})
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
@@ -40,25 +41,31 @@ const OnboardingForm = () => {
   // Get the existing user data from React Query cache
   const existingUserData = queryClient.getQueryData(["authUser"])
 
-  const [formData, setFormData] = useState({
-    fullName: "",
-    username: "",
-    email: "",
-    password: "",
-    profileImg: null,
-    coverImg: null,
-    bio: "",
-    link: "",
-    profession: "",
-    skills: [],
-    experienceLevel: "",
-    genres: [],
-    location: "",
-    availableForCollaboration: false,
-    interests: [],
-    preferredCollabTypes: [],
-    pastProjects: [],
-    equipmentOwned: [],
+  // Load saved form data from sessionStorage on component mount
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = sessionStorage.getItem('onboardingFormData');
+      if (savedData) return JSON.parse(savedData);
+    }
+    return {
+      fullName: "",
+      username: "",
+      email: "",
+      password: "",
+      profileImg: null,
+      coverImg: null,
+      bio: "",
+      link: "",
+      profession: "",
+      skills: [],
+      genres: [],
+      location: "",
+      experienceLevel: "",
+      interests: [],
+      preferredCollabTypes: [],
+      equipmentOwned: [],
+      pastProjects: [],
+    };
   })
 
   // Pre-fill form data when component mounts
@@ -112,7 +119,14 @@ const OnboardingForm = () => {
   }, [optionsLoaded, queryClient]);
 
   const updateFormData = (newData) => {
-    setFormData((prev) => ({ ...prev, ...newData }))
+    setFormData((prev) => {
+      const updatedData = { ...prev, ...newData };
+      // Save to sessionStorage whenever form data is updated
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('onboardingFormData', JSON.stringify(updatedData));
+      }
+      return updatedData;
+    });
   }
 
   const handleNext = () => {
@@ -150,7 +164,76 @@ const OnboardingForm = () => {
       // for immediate feedback, but final check could happen here or on submit.
       // We removed the toast errors for basic required fields.
     }
-    // Step 1 validation complete or not step 0, proceed
+    
+    // Validation for Step 2 fields
+    if (step === 1) {
+      const { profession, experienceLevel, skills, genres, location } = formData;
+      const newErrors = {};
+      
+      if (!profession) {
+        newErrors.profession = "Please select a profession";
+      }
+      
+      if (!experienceLevel) {
+        newErrors.experienceLevel = "Please select your experience level";
+      }
+      
+      if (skills.length === 0) {
+        newErrors.skills = "Please select at least one skill";
+      }
+      
+      if (genres.length === 0) {
+        newErrors.genres = "Please select at least one genre";
+      }
+      
+      if (!location.trim()) {
+        newErrors.location = "Please enter your location";
+      }
+      
+      setErrors(newErrors);
+      
+      // Prevent proceeding to the next step if errors exist
+      if (Object.keys(newErrors).length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please fill in all required fields"
+        });
+        return;
+      }
+    }
+    
+    // Validation for Step 3 fields
+    if (step === 2) {
+      const { interests, preferredCollabTypes, equipmentOwned } = formData;
+      const newErrors = {};
+      
+      if (interests.length === 0) {
+        newErrors.interests = "Please select at least one interest";
+      }
+      
+      if (preferredCollabTypes.length === 0) {
+        newErrors.preferredCollabTypes = "Please select at least one collaboration type";
+      }
+      
+      if (equipmentOwned.length === 0) {
+        newErrors.equipmentOwned = "Please select at least one equipment item";
+      }
+      
+      setErrors(newErrors);
+      
+      // Don't proceed with submission if errors exist
+      if (Object.keys(newErrors).length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please fill in all required fields"
+        });
+        return;
+      }
+    }
+    
+    // All validations passed, proceed to next step
     setStep((prev) => Math.min(prev + 1, 2))
   }
 
@@ -190,32 +273,89 @@ const OnboardingForm = () => {
       // Invalidate and refetch user data
       queryClient.invalidateQueries(["authUser"])
       
-      toast.success("Onboarding completed successfully!")
+      toast({
+        title: "Success",
+        description: "Onboarding completed successfully!"
+      })
       navigate(`/profile/${data.username}`) 
     },
     onError: (error) => {
       console.error("Error during onboarding submission:", error)
-      toast.error(error.message || "Onboarding failed")
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Onboarding failed"
+      })
     }
   })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Final validation before submission
+    // Validation for Step 3 fields if current step is 2
+    if (step === 2) {
+      const { interests, preferredCollabTypes, equipmentOwned } = formData;
+      const newErrors = {};
+      
+      if (interests.length === 0) {
+        newErrors.interests = "Please select at least one interest";
+      }
+      
+      if (preferredCollabTypes.length === 0) {
+        newErrors.preferredCollabTypes = "Please select at least one collaboration type";
+      }
+      // equipmentOwned validation removed
+      
+      setErrors(newErrors); // Update errors state for UI display
+      
+      // Don't proceed with submission if Step 3 errors exist
+      if (Object.keys(newErrors).length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please fill in all required fields for Step 3."
+        });
+        return;
+      }
+    }
+
+    // Final validation for basic required fields (should ideally be covered by Step 1 validation)
     const { fullName, username, email, password } = formData;
-    if (!fullName || !username || !email || !password) {
-      toast.error("Please ensure Full Name, Username, Email, and Password are provided.");
+    
+    // Validate Full Name
+    if (!fullName || fullName.trim().length < 2) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please enter a valid Full Name (at least 2 characters)."
+      });
+      return; // Prevent submission
+    }
+    
+    if (!username || !email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please ensure Username, Email, and Password are provided."
+      });
       return; // Prevent submission
     }
     // Add other necessary final checks if needed
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address.");
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please enter a valid email address."
+      });
       return;
     }
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters long.");
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Password must be at least 6 characters long."
+      });
       return;
     }
 
@@ -226,8 +366,9 @@ const OnboardingForm = () => {
 
     onboardingMutation.mutate(sanitizedData)
     
-    // Clear the temporary password after submission
+      // Clear the temporary password and form data after successful submission
     sessionStorage.removeItem('tempPassword');
+    sessionStorage.removeItem('onboardingFormData');
   }
 
 
@@ -358,8 +499,8 @@ const OnboardingForm = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6 lg:pl-6">
                   {step === 0 && <Step1 formData={formData} updateFormData={updateFormData} errors={errors} />}
-                  {step === 1 && <Step2 formData={formData} updateFormData={updateFormData} />}
-                  {step === 2 && <Step3 formData={formData} updateFormData={updateFormData} />}
+                  {step === 1 && <Step2 formData={formData} updateFormData={updateFormData} errors={errors} />}
+                  {step === 2 && <Step3 formData={formData} updateFormData={updateFormData} errors={errors} />}
                 </form>
               </div>
 
@@ -378,13 +519,23 @@ const OnboardingForm = () => {
                   type="button"
                   onClick={step === 2 ? handleSubmit : handleNext}
                   disabled={onboardingMutation.isLoading}
-                  className="px-6 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+                  className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-semibold hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
-                  {step === 2 
-                    ? onboardingMutation.isLoading 
-                      ? "Submitting..." 
-                      : "Complete" 
-                    : "Continue"}
+                  {step === 2 ? (
+                    onboardingMutation.isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <span className="inline-flex items-center">
+                        Complete
+                        <Check className="ml-2 h-4 w-4" />
+                      </span>
+                    )
+                  ) : (
+                    "Continue"
+                  )}
                 </button>
               </div>
             </motion.div>

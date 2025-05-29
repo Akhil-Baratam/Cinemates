@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Checkbox } from "../../components/ui/checkbox"
 import { useQuery } from "@tanstack/react-query"
 
-const Step2 = ({ formData, updateFormData }) => {
+const Step2 = ({ formData, updateFormData, errors = {} }) => {
   const { data: options, isLoading } = useQuery({
     queryKey: ['onboardingOptions'],
     queryFn: async () => {
@@ -44,35 +44,90 @@ const Step2 = ({ formData, updateFormData }) => {
   }
 
   if (isLoading) {
-    return <div className="text-center py-4">Loading options...</div>
+    return (
+      <div className="grid grid-cols-2 gap-6">
+        {/* Profession skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        
+        {/* Experience level skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        
+        {/* Skills skeleton */}
+        <div className="space-y-2 col-span-2">
+          <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+          <div className="grid grid-cols-3 gap-2">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Genres skeleton */}
+        <div className="space-y-2 col-span-2">
+          <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+          <div className="grid grid-cols-3 gap-2">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Location skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-20 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        
+        {/* Collaboration checkbox skeleton */}
+        <div className="flex items-center space-x-2">
+          <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-2">
         <Label htmlFor="profession" className="text-sm font-medium">
-          Profession
+          Profession<span className="text-red-500 ml-1">*</span>
         </Label>
         <Select name="profession" onValueChange={(value) => handleSelectChange("profession", value)}>
-          <SelectTrigger>
+          <SelectTrigger className={errors.profession ? "border-red-500" : ""}>
             <SelectValue placeholder="Select profession" />
           </SelectTrigger>
           <SelectContent>
-            {options?.professions?.map((profession) => (
+            {options?.profession?.map((profession) => (
               <SelectItem key={profession} value={profession.toLowerCase()}>
                 {profession}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {errors.profession && (
+          <p className="text-sm text-red-500 mt-1">{errors.profession}</p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="experienceLevel" className="text-sm font-medium">
-          Experience Level
+          Experience Level<span className="text-red-500 ml-1">*</span>
         </Label>
         <Select name="experienceLevel" onValueChange={(value) => handleSelectChange("experienceLevel", value)}>
-          <SelectTrigger>
+          <SelectTrigger className={errors.experienceLevel ? "border-red-500" : ""}>
             <SelectValue placeholder="Select experience level" />
           </SelectTrigger>
           <SelectContent>
@@ -83,11 +138,14 @@ const Step2 = ({ formData, updateFormData }) => {
             ))}
           </SelectContent>
         </Select>
+        {errors.experienceLevel && (
+          <p className="text-sm text-red-500 mt-1">{errors.experienceLevel}</p>
+        )}
       </div>
 
       <div className="space-y-2 col-span-2">
-        <Label className="text-sm font-medium">Skills</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label className="text-sm font-medium">Skills<span className="text-red-500 ml-1">*</span></Label>
+        <div className={`grid grid-cols-3 gap-2 ${errors.skills ? "border rounded border-red-500 p-2" : ""}`}>
           {options?.skills?.map((skill) => (
             <div key={skill} className="flex items-center space-x-2">
               <Checkbox
@@ -101,11 +159,14 @@ const Step2 = ({ formData, updateFormData }) => {
             </div>
           ))}
         </div>
+        {errors.skills && (
+          <p className="text-sm text-red-500 mt-1">{errors.skills}</p>
+        )}
       </div>
 
       <div className="space-y-2 col-span-2">
-        <Label className="text-sm font-medium">Genres</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label className="text-sm font-medium">Genres<span className="text-red-500 ml-1">*</span></Label>
+        <div className={`grid grid-cols-3 gap-2 ${errors.genres ? "border rounded border-red-500 p-2" : ""}`}>
           {options?.genres?.map((genre) => (
             <div key={genre} className="flex items-center space-x-2">
               <Checkbox
@@ -119,11 +180,14 @@ const Step2 = ({ formData, updateFormData }) => {
             </div>
           ))}
         </div>
+        {errors.genres && (
+          <p className="text-sm text-red-500 mt-1">{errors.genres}</p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="location" className="text-sm font-medium">
-          Location
+          Location<span className="text-red-500 ml-1">*</span>
         </Label>
         <Input
           id="location"
@@ -131,7 +195,11 @@ const Step2 = ({ formData, updateFormData }) => {
           value={formData.location}
           onChange={handleChange}
           placeholder="City, Country"
+          className={errors.location ? "border-red-500" : ""}
         />
+        {errors.location && (
+          <p className="text-sm text-red-500 mt-1">{errors.location}</p>
+        )}
       </div>
 
       <div className="flex items-center space-x-2">

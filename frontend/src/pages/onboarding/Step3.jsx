@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/button"
 import { X } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 
-const Step3 = ({ formData, updateFormData }) => {
+const Step3 = ({ formData, updateFormData, errors = {} }) => {
   const { data: options, isLoading } = useQuery({
     queryKey: ['onboardingOptions'],
     queryFn: async () => {
@@ -51,14 +51,67 @@ const Step3 = ({ formData, updateFormData }) => {
   }
 
   if (isLoading) {
-    return <div className="text-center py-4">Loading options...</div>
+    return (
+      <div className="space-y-6">
+        {/* Interests skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-20 bg-gray-200 rounded animate-pulse"></div>
+          <div className="grid grid-cols-3 gap-2">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Collaboration Types skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-48 bg-gray-200 rounded animate-pulse"></div>
+          <div className="grid grid-cols-3 gap-2">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Past Projects skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-28 bg-gray-200 rounded animate-pulse"></div>
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="flex items-center space-x-2 mb-2">
+              <div className="h-10 flex-grow bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          ))}
+          <div className="h-9 w-28 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        
+        {/* Equipment Owned skeleton */}
+        <div className="space-y-2">
+          <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+          <div className="grid grid-cols-3 gap-2">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Interests</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label className="text-sm font-medium">Interests<span className="text-red-500 ml-1">*</span></Label>
+        <div className={`grid grid-cols-3 gap-2 ${errors.interests ? "border rounded border-red-500 p-2" : ""}`}>
           {options?.interests?.map((interest) => (
             <div key={interest} className="flex items-center space-x-2">
               <Checkbox
@@ -72,11 +125,14 @@ const Step3 = ({ formData, updateFormData }) => {
             </div>
           ))}
         </div>
+        {errors.interests && (
+          <p className="text-sm text-red-500 mt-1">{errors.interests}</p>
+        )}
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Preferred Collaboration Types</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label className="text-sm font-medium">Preferred Collaboration Types<span className="text-red-500 ml-1">*</span></Label>
+        <div className={`grid grid-cols-3 gap-2 ${errors.preferredCollabTypes ? "border rounded border-red-500 p-2" : ""}`}>
           {options?.preferredCollabTypes?.map((type) => (
             <div key={type} className="flex items-center space-x-2">
               <Checkbox
@@ -90,6 +146,9 @@ const Step3 = ({ formData, updateFormData }) => {
             </div>
           ))}
         </div>
+        {errors.preferredCollabTypes && (
+          <p className="text-sm text-red-500 mt-1">{errors.preferredCollabTypes}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -114,7 +173,7 @@ const Step3 = ({ formData, updateFormData }) => {
 
       <div className="space-y-2">
         <Label className="text-sm font-medium">Equipment Owned</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className={`grid grid-cols-3 gap-2 ${errors.equipmentOwned ? "border rounded border-red-500 p-2" : ""}`}>
           {options?.equipmentOwned?.map((equipment) => (
             <div key={equipment} className="flex items-center space-x-2">
               <Checkbox
@@ -128,6 +187,9 @@ const Step3 = ({ formData, updateFormData }) => {
             </div>
           ))}
         </div>
+        {errors.equipmentOwned && (
+          <p className="text-sm text-red-500 mt-1">{errors.equipmentOwned}</p>
+        )}
       </div>
     </div>
   )

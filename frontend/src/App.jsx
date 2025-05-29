@@ -1,5 +1,5 @@
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "./components/ui/toaster";
 import { useAuth } from "./contexts/AuthContext";
 import { ChatProvider } from "./contexts/ChatContext";
 import Navbar from "./components/Navbar/Navbar";
@@ -156,7 +156,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster />
     </>
   );
 }
