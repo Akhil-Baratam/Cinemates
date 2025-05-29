@@ -22,6 +22,11 @@ import NotificationPage from "./pages/notifications/NotificationPage";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 import ExploreRoh from "./pages/roh/ExploreRoh";
 
+// Detail Components
+import AdDetail from "./pages/marketplace/components/AdDetail";
+import CollabDetail from "./pages/collabs/components/CollabDetail";
+import RohDetail from "./pages/roh/components/RohDetail";
+
 // Layout components
 const PublicLayout = ({ children }) => (
   <div className="bg-white font-poppins min-h-screen">{children}</div>
@@ -148,9 +153,12 @@ function App() {
         <Route path="/mates" element={<ProtectedRoute element={<DiscoverMates />} />} />
         <Route path="/collabs" element={<ProtectedRoute element={<ExploreCollabs />} />} />
         <Route path="/ads/explore" element={<ProtectedRoute element={<ExploreAds />} />} />
+        <Route path="/ads/:id" element={<ProtectedRoute element={<AdDetail />} />} />
         <Route path="/contact" element={<ProtectedRoute element={<Contact />} />} />
         <Route path="/notifications" element={<ProtectedRoute element={<NotificationPage />} />} />
         <Route path="/roh" element={<ProtectedRoute element={<ExploreRoh />} />} />
+        <Route path="/roh/:id" element={<ProtectedRoute element={<RohDetail />} />} />
+        <Route path="/collabs/:id" element={<ProtectedRoute element={<CollabDetail />} />} />
 
         {/* Catch-all route - 404 page would be better than redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

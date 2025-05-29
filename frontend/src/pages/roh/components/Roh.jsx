@@ -1,5 +1,6 @@
 "use client"
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Badge } from "../../../components/ui/badge"
 import { DollarSign, HelpCircle } from 'lucide-react' // Icons for price/help
@@ -11,6 +12,12 @@ const formatPrice = (price) => {
 };
 
 const Roh = ({ roh }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(`/roh/${roh._id}`);
+  };
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -18,18 +25,10 @@ const Roh = ({ roh }) => {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
       className="h-full"
+      onClick={handleClick}
     >
-      <Card className="h-full flex flex-col overflow-hidden"> 
-        {/* Optional: Display first image if available */}
-        {roh.imgs && roh.imgs.length > 0 && (
-          <div className="aspect-video w-full overflow-hidden">
-            <img 
-              src={roh.imgs[0]} 
-              alt={roh.productName} 
-              className="object-cover w-full h-full"
-            />
-          </div>
-        )}
+      <Card className="h-full flex flex-col overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1"> 
+        {/* Image display removed */}
         <CardHeader className="pb-2">
           <CardTitle className="text-lg line-clamp-2 font-semibold">{roh.productName}</CardTitle>
           <div className="flex justify-between items-center text-sm text-muted-foreground pt-1">

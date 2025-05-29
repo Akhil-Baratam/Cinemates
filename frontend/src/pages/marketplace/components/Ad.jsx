@@ -1,9 +1,16 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
 import { formatPrice } from "../../../utils/formatters";
 
 const Ad = ({ ad }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(`/ads/${ad._id}`);
+  };
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -11,21 +18,13 @@ const Ad = ({ ad }) => {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
       className="h-full"
+      onClick={handleClick}
     >
-      <Card className="h-full flex flex-col overflow-hidden">
-        {/* Image Section */}
-        {ad.imgs?.[0] && (
-          <div className="relative h-48 overflow-hidden">
-            <img 
-              src={ad.imgs[0].url} 
-              alt={ad.productName}
-              className="w-full h-full object-cover"
-            />
-            {ad.isSold && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">SOLD</span>
-              </div>
-            )}
+      <Card className="h-full flex flex-col overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+        {/* SOLD indicator without image */}
+        {ad.isSold && (
+          <div className="bg-black/10 p-2 text-center">
+            <span className="text-gray-700 font-bold text-lg">SOLD</span>
           </div>
         )}
 

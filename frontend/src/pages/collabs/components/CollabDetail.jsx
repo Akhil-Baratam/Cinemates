@@ -6,47 +6,48 @@ import { Badge } from "../../../components/ui/badge";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import LoadingSpinner from "../../../components/LoadingSpinner";
-import { formatPrice, formatDate } from "../../../utils/formatters";
+import { formatDate } from "../../../utils/formatters";
 import { useAuth } from "../../../contexts/AuthContext";
-import { Calendar, DollarSign, MapPin, User, Clock, Shield, MessageCircle, Mail, Info, ChevronLeft } from "lucide-react";
+import { Calendar, MapPin, User, Clock, Tag, MessageCircle, Mail, Info, Users, Film, Briefcase, ChevronLeft } from "lucide-react";
 
-const AdDetail = () => {
+const CollabDetail = () => {
   const { id } = useParams();
   const { authUser } = useAuth();
+  const queryClient = useQueryClient();
 
-  const { data: ad, isLoading, error } = useQuery({
-    queryKey: ["ad", id],
+  const { data: collab, isLoading, error } = useQuery({
+    queryKey: ["collab", id],
     queryFn: async () => {
-      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/ads/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/collabs/${id}`, {
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to fetch ad details");
+      if (!res.ok) throw new Error("Failed to fetch collaboration details");
       return res.json();
     },
   });
 
-  const { mutate: toggleInterest, isLoading: isTogglingInterest } = useMutation({
+  const { mutate: applyToCollab, isLoading: isApplying } = useMutation({
     mutationFn: async () => {
       const res = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/api/ads/${id}/toggle-interest`,
+        `${import.meta.env.VITE_BASE_URL}/api/collabs/${id}/apply`,
         {
           method: "POST",
           credentials: "include",
         }
       );
-      if (!res.ok) throw new Error("Failed to update interest");
+      if (!res.ok) throw new Error("Failed to apply to collaboration");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["ad", id]);
+      queryClient.invalidateQueries(["collab", id]);
     },
   });
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-500">{error.message}</div>;
 
-  const isInterested = ad.interests.some(
-    (interest) => interest._id === authUser?._id
+  const hasApplied = collab.applicants?.some(
+    (applicant) => applicant._id === authUser?._id
   );
 
   const containerVariants = {
@@ -83,33 +84,32 @@ const AdDetail = () => {
         </Button>
       </motion.div>
       <motion.div variants={itemVariants} className="mb-6">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent inline-block">
-          {ad.productName}
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent inline-block">
+          {collab.title}
         </h1>
         <div className="flex items-center gap-2 mt-2">
-          <Badge variant="outline">{ad.category}</Badge>
-          <Badge variant="outline" className="bg-muted">
-            {ad.condition}
-          </Badge>
-          {ad.isSold && (
-            <Badge variant="destructive">SOLD</Badge>
+          <Badge variant="outline">{collab.projectType}</Badge>
+          {collab.status && (
+            <Badge variant={collab.status === "Open" ? "success" : "secondary"}>
+              {collab.status}
+            </Badge>
           )}
         </div>
       </motion.div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div variants={itemVariants} className="lg:col-span-2 space-y-4">
-          {/* Image Gallery with smooth transitions */}
+          {/* Images Gallery */}
           <Card className="overflow-hidden border border-gray-200 shadow-md rounded-lg">
             <CardContent className="p-0">
-              {ad.imgs && ad.imgs.length > 0 ? (
+              {collab.images && collab.images.length > 0 ? (
                 <div className="space-y-4">
                   <div className="aspect-w-16 aspect-h-9 rounded-t-xl overflow-hidden">
                     <AnimatePresence mode="wait">
                       <motion.img
-                        key={ad.imgs[0].url}
-                        src={ad.imgs[0].url}
-                        alt={ad.productName}
+                        key={collab.images[0]}
+                        src={collab.images[0]}
+                        alt={collab.title}
                         className="w-full h-full object-cover"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -118,9 +118,9 @@ const AdDetail = () => {
                       />
                     </AnimatePresence>
                   </div>
-                  {ad.imgs.length > 1 && (
+                  {collab.images.length > 1 && (
                     <div className="grid grid-cols-4 gap-2 p-4">
-                      {ad.imgs.slice(1).map((img, index) => (
+                      {collab.images.slice(1).map((img, index) => (
                         <motion.div
                           key={index}
                           className="aspect-square rounded-lg overflow-hidden"
@@ -128,8 +128,8 @@ const AdDetail = () => {
                           transition={{ duration: 0.2 }}
                         >
                           <img
-                            src={img.url}
-                            alt={`${ad.productName} ${index + 2}`}
+                            src={img}
+                            alt={`${collab.title} ${index + 2}`}
                             className="w-full h-full object-cover"
                           />
                         </motion.div>
@@ -138,9 +138,38 @@ const AdDetail = () => {
                   )}
                 </div>
               ) : (
-                <div className="aspect-w-16 aspect-h-9 bg-muted flex items-center justify-center rounded-xl">
-                  <Info className="h-12 w-12 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mt-4">No images available</p>
+                <div className="aspect-w-16 aspect-h-9 bg-muted flex flex-col items-center justify-center rounded-xl p-8">
+                  <Film className="h-12 w-12 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground mt-4 text-center">No project images available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Description */}
+          <Card className="overflow-hidden border border-gray-200 shadow-md rounded-lg">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Project Description</h2>
+              <p className="text-muted-foreground whitespace-pre-wrap">
+                {collab.description}
+              </p>
+              
+              {/* Genres */}
+              {collab.genres && collab.genres.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Tag className="h-4 w-4" /> Genres
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {collab.genres.map((genre, index) => (
+                      <span 
+                        key={index} 
+                        className="text-xs bg-muted px-2 py-1 rounded-full"
+                      >
+                        #{genre}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -151,98 +180,94 @@ const AdDetail = () => {
           <Card className="overflow-hidden border border-gray-200 shadow-md rounded-lg">
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-700 bg-clip-text text-transparent">
-                    {formatPrice(ad.price, ad.currency)}
-                  </p>
-                  {ad.isNegotiable && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" /> Price negotiable
-                    </p>
-                  )}
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <span className="font-medium">Looking for:</span>
                 </div>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button
-                    onClick={() => toggleInterest()}
-                    disabled={isTogglingInterest}
-                    variant={isInterested ? "outline" : "default"}
+                    onClick={() => applyToCollab()}
+                    disabled={isApplying || hasApplied || collab.status !== "Open"}
+                    variant={hasApplied ? "outline" : "default"}
                     className="rounded-full px-6 transition-all duration-300"
                   >
-                    {isInterested ? "Remove Interest" : "Show Interest"}
+                    {hasApplied ? "Applied" : "Apply Now"}
                   </Button>
                 </motion.div>
               </div>
 
+              {/* Roles needed */}
+              {collab.rolesNeeded && collab.rolesNeeded.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {collab.rolesNeeded.map((role, index) => (
+                    <Badge key={index} variant="secondary" className="justify-center">
+                      {role}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
               <Tabs defaultValue="details" className="w-full">
-                <TabsList className="w-full grid grid-cols-3 mb-4">
+                <TabsList className="w-full grid grid-cols-2 mb-4">
                   <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="specs">Specifications</TabsTrigger>
                   <TabsTrigger value="contact">Contact</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="details" className="space-y-4 mt-2">
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">Description</h2>
-                    <p className="text-muted-foreground whitespace-pre-wrap">
-                      {ad.description}
-                    </p>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="specs" className="space-y-4 mt-2">
                   <div className="grid grid-cols-1 gap-3">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
                       <p className="text-sm">
-                        <span className="font-medium">Location:</span> {ad.location}
+                        <span className="font-medium">Location:</span> {collab.location}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <p className="text-sm">
                         <span className="font-medium">Posted by:</span>{" "}
-                        {ad.user.username}
+                        {collab.user?.username || "Anonymous"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <p className="text-sm">
-                        <span className="font-medium">Purchase Date:</span>{" "}
-                        {formatDate(ad.bought_on)}
+                        <span className="font-medium">Start Date:</span>{" "}
+                        {collab.startDate ? formatDate(collab.startDate) : "Flexible"}
                       </p>
                     </div>
-                    {ad.warranty?.hasWarranty && (
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-sm">
-                          <span className="font-medium">Warranty until:</span>{" "}
-                          {formatDate(ad.warranty.expiryDate)}
-                        </p>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm">
+                        <span className="font-medium">Duration:</span>{" "}
+                        {collab.duration || "Not specified"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm">
+                        <span className="font-medium">Compensation:</span>{" "}
+                        {collab.isPaid ? "Paid" : "Unpaid"}
+                      </p>
+                    </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="contact" className="space-y-4 mt-2">
                   <h2 className="text-xl font-semibold">Contact Options</h2>
                   <div className="space-y-3">
-                    {ad.contactPreferences.email && (
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button variant="outline" className="w-full rounded-lg flex items-center gap-2">
-                          <Mail className="h-4 w-4" /> Email Seller
-                        </Button>
-                      </motion.div>
-                    )}
-                    {ad.contactPreferences.chat && (
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button variant="outline" className="w-full rounded-lg flex items-center gap-2">
-                          <MessageCircle className="h-4 w-4" /> Chat with Seller
-                        </Button>
-                      </motion.div>
-                    )}
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button variant="outline" className="w-full rounded-lg flex items-center gap-2">
+                        <Mail className="h-4 w-4" /> Email Creator
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button variant="outline" className="w-full rounded-lg flex items-center gap-2">
+                        <MessageCircle className="h-4 w-4" /> Chat with Creator
+                      </Button>
+                    </motion.div>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -254,4 +279,4 @@ const AdDetail = () => {
   );
 };
 
-export default AdDetail; 
+export default CollabDetail;
