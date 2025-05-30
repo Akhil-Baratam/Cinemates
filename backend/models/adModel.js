@@ -82,11 +82,11 @@ const adSchema = new mongoose.Schema(
     imgs: [{
       url: {
         type: String,
-        required: true
+        // required: true
       },
       isPrimary: {
         type: Boolean,
-        default: false
+        // default: false
       }
     }],
     interests: [
