@@ -10,10 +10,14 @@ import { ErrorBoundary } from "react-error-boundary";
 const Posts = ({ feedType, username, userId }) => {
   const getPostEndpoint = () => {
     switch (feedType) {
+      case "all":
+        return `${import.meta.env.VITE_BASE_URL}/api/posts/all`;
       case "forYou":
         return `${import.meta.env.VITE_BASE_URL}/api/posts/all`;
       case "following":
         return `${import.meta.env.VITE_BASE_URL}/api/posts/following`;
+      case "relevance":
+        return `${import.meta.env.VITE_BASE_URL}/api/posts/all`;
       case "posts":
         return `${import.meta.env.VITE_BASE_URL}/api/posts/user/${username}`;
       case "likes":
@@ -63,6 +67,8 @@ const Posts = ({ feedType, username, userId }) => {
   if (isError) {
     return <div className="text-red-500 p-4">Error: {error.message}</div>;
   }
+
+  console.log('Posts component render - isLoading:', isLoading, 'data:', data, 'feedType:', feedType);
 
   return (
     <ErrorBoundary

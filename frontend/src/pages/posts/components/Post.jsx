@@ -24,13 +24,18 @@ const Post = ({ post }) => {
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
   const postOwner = post.user;
-  const [isLiked, setIsLiked] = useState(post.likes.includes(authUser._id));
+  const [isLiked, setIsLiked] = useState(authUser ? post.likes.includes(authUser._id) : false);
   const [localLikes, setLocalLikes] = useState(post.likes);
-  const isMyPost = authUser._id === post.user._id;
+  const isMyPost = authUser ? authUser._id === post.user._id : false;
   const formattedDate = formatPostDate(post.createdAt); // For demonstration, format the date as required
   const [selectedUser, setSelectedUser] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
+
+  // If authUser is not loaded yet, don't render the post
+  if (!authUser) {
+    return <LoadingSpinner />;
+  }
 
   const { mutate: likePost, isPending: isLiking } = useMutation({
     mutationFn: async () => {
@@ -192,16 +197,16 @@ const { mutate: commentPost, isPending: isCommenting } = useMutation({
             <Avatar className=" h-12 w-12">
               <AvatarImage
                 src={postOwner.profileImg}
-                alt={postOwner.fullName}
+                alt={postOwner.fullName || postOwner.username}
               />
               <AvatarFallback>
-                {postOwner.fullName.charAt(0).toUpperCase()}
+                {(postOwner.fullName || postOwner.username || 'U').charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
           <div className="flex-grow min-w-0">
             <p onClick={() => handleUserClick(postOwner)} className="font-semibold text-sm text-foreground hover:underline">
-              {postOwner.fullName}
+              {postOwner.fullName || postOwner.username}
             </p>
             <div className=" flex-grow min-w-10 text-xs text-muted-foreground truncate">
               <div className=" flex">
