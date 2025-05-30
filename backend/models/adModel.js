@@ -150,13 +150,12 @@ const adSchema = new mongoose.Schema(
 );
 
 // Ensure at least one image is present
-adSchema.pre("validate", function (next) {
-  if (!this.imgs || this.imgs.length === 0) {
-    return next(new Error("At least one image is required"));
-  }
-  next();
-});
-
+// adSchema.pre("validate", function (next) {
+//   if (!this.imgs || this.imgs.length === 0) {
+//     return next(new Error("At least one image is required"));
+//   }
+//   next();
+// });
 const Ad = mongoose.model("Ad", adSchema);
 
 module.exports = Ad;
